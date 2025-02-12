@@ -6,16 +6,16 @@ import CustomButton from "../components/CustomButton";
 export default function Menu() {
   const router = useRouter();
 
-  const handleRegister = () => {
-    router.push("/signup"); 
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>TrackList Menu</Text>
       <Text style={styles.subtitle}>This is a placeholder screen for the main menu.</Text>
 
       <View style={styles.buttonContainer}>
+        {/* Button to Open ActTab */}
+        <CustomButton text="Open Activity Tab" onPress={() => router.push("/actTab")} />
+
+        {/* Back to Home Button */}
         <CustomButton text="Back to Home" onPress={() => router.push("/")} />
       </View>
     </View>
