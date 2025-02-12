@@ -17,6 +17,7 @@ export default function Menu() {
 
       <View style={styles.buttonContainer}>
         <CustomButton text="Back to Home" onPress={() => router.push("/")} />
+        <CustomButton text="Auth" onPress={() => router.push("/auth")} />
       </View>
     </View>
   );
