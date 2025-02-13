@@ -1,0 +1,26 @@
+{
+    "version": "2.0",
+    "projectName": "tracklist",
+    "managers": ["evnd04, Gian-Go"],
+    "milestones": {
+      "milestone1": {
+        "startDate": "2025-01-27",
+        "endDate": "2025-02-21",
+        "projectedGroupGrade": 100.0
+      },
+      "milestone2": {
+        "startDate": "2025-02-28",
+        "endDate": "2025-03-21",
+        "projectedGroupGrade": 100.0
+      },
+      "milestone3": {
+        "startDate": "2025-03-30",
+        "endDate": "2025-04-30",
+        "projectedGroupGrade": 100.0
+      }
+    },
+    "lectureTopicTaskQuota": 4,
+    "countOpenIssues": false,
+    "sprints": 2,
+    "minTasksPerSprint": 1
+  }
