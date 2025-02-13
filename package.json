@@ -1,0 +1,27 @@
+{
+  "name": "semester-project-tracklist",
+  "version": "1.0.0",
+  "description": "Run `npx expo start` command inside the TrackList directory",
+  "main": "signin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uprm-inso4115-2024-2025-s2/semester-project-tracklist.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/uprm-inso4115-2024-2025-s2/semester-project-tracklist/issues"
+  },
+  "homepage": "https://github.com/uprm-inso4115-2024-2025-s2/semester-project-tracklist#readme",
+  "dependencies": {
+    "expo": "^52.0.33"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/react": "~18.3.12"
+  }
+}

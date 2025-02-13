@@ -1,6 +1,6 @@
 {
   "name": "tracklist",
-  "main": "expo-router/entry",
+  "main": "signin.js",
   "license": "0BSD",
   "version": "1.0.0",
   "scripts": {
