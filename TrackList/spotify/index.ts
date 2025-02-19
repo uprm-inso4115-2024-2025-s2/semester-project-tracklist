@@ -62,7 +62,7 @@ export async function getTrackById(trackId: string) {
   }
 }
 
-const ARTIST_API_URL = "https://api.spotify.com/v1/artists";
+const ARTISTS_API_URL = "https://api.spotify.com/v1/artists";
 
 /**
  * Fetches related artists from Spotify by artist ID.
@@ -72,7 +72,7 @@ const ARTIST_API_URL = "https://api.spotify.com/v1/artists";
 export async function getRelatedArtists(artistId: string): Promise<Object | null> {
   try {
     const token = await fetchToken(); // Retrieve access token
-    const response = await fetch(`${ARTIST_API_URL}/${artistId}/related-artists`, {
+    const response = await fetch(`${ARTISTS_API_URL}/${artistId}/related-artists`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -83,6 +83,30 @@ export async function getRelatedArtists(artistId: string): Promise<Object | null
     return await response.json();
   } catch (error: any) {
     console.error("Error fetching related artists:", error.message);
+    return null;
+  }
+}
+
+/**
+ * Fetches the top tracks of an artist from Spotify.
+ * @param {string} artistId - The Spotify ID of the artist.
+ * @param {string} [country="US"] - The country code for track filtering.
+ * @returns {Promise<Object | null>} - The top tracks data or null if an error occurs.
+ */
+export async function getTopTracks(artistId: string, country: string = "US"): Promise<Object | null> {
+  try {
+    const token = await fetchToken(); // Retrieve access token
+    const response = await fetch(`${ARTISTS_API_URL}/${artistId}/top-tracks?market=${country}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch top tracks: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error fetching top tracks:", error.message);
     return null;
   }
 }
