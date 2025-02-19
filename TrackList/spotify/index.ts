@@ -39,3 +39,25 @@ export const getAlbumTracks = async (albumId: string) => {
   const data = await response.json();
   return data.items || [];
 };
+
+const SPOTIFY_API_URL = "https://api.spotify.com/v1/tracks";
+
+/**
+ * Fetches track details from Spotify by track ID.
+ * @param {string} trackId - The Spotify ID of the track.
+ * @returns {Promise<Object>} - The track data.
+ */
+
+export async function getTrackById(trackId: string) {
+  try {
+    const token = await fetchToken(); // Retrieve access token
+    const response = await fetch(`${SPOTIFY_API_URL}/${trackId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await response.json();
+  } catch (error: any) {
+    console.error("Error fetching track:", error.response?.data || error.message);
+    return null;
+  }
+}
