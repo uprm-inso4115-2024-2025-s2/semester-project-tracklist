@@ -14,9 +14,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "bundleIdentifer": "com.inso4115.tracklist",
       "supportsTablet": true
     },
     "android": {
+      "package": "com.inso4115.tracklist",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"

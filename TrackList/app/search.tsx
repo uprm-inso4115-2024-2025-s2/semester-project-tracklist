@@ -19,7 +19,7 @@ const data = [
         artist: "Bad Bunny",
         year: "2025",
         type: "Album",
-        image: "https://t2.genius.com/unsafe/600x600/https%3A%2F%2Fimages.genius.com%2F66f08db4c1d9d323ab441ab6c04a034a.1000x1000x1.png"
+        image: "../assets/images/dtmf.png"
     },
     {
         id: "2",
@@ -135,11 +135,11 @@ export default function Search() {
 
             {/* Bottom tab bar with icons */}
             <View style={styles.tabBar}>
-                <TouchableOpacity onPress={() => router.push("/")}>
+                <TouchableOpacity onPress={() => router.push("/menu")}>
                     <Ionicons name="home-outline" size={32} color="#333" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => router.push("/search")}>
-                    <Ionicons name="search-outline" size={32} color="#FF6600" />
+                    <Ionicons name="search-outline" size={40} color="#FF6600" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => router.push("/profile")}>
                     <Ionicons name="person-outline" size={32} color="#333" />
