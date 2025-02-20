@@ -134,3 +134,25 @@ export async function getArtist(artistId: string): Promise<Object | null> {
     return null;
   }
 }
+
+export async function getNewReleases() {
+  try {
+    const token = await fetchToken();
+    const response = await fetch("https://api.spotify.com/v1/browse/new-releases", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      throw new Error(`Spotify API error: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data.albums.items.map((album: any) => ({
+      id: album.id,
+      name: album.name,
+      artist: album.artists.map((artist: any) => artist.name).join(", "),
+      image: album.images[0]?.url,
+    }));
+  } catch (error: any) {
+    console.error("Error fetching new releases:", error.message);
+    return [];
+  }
+}
