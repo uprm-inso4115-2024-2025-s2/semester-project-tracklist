@@ -1,6 +1,6 @@
 {
     "version": "2.0",
-    "projectName": "semester-project-tracklist",
+    "projectName": "TrackList",
     "managers": ["evnd04", "Gian-Go"],
     "milestones": {
       "Milestone 1": {
