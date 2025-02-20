@@ -62,6 +62,7 @@ export async function getTrackById(trackId: string) {
   }
 }
 
+// Note: these constant should be on the Env section
 const ARTISTS_API_URL = "https://api.spotify.com/v1/artists";
 
 /**
@@ -135,7 +136,6 @@ export async function getArtist(artistId: string): Promise<Object | null> {
 }
 
 /**
- * * * * * * * * DRAFT * * * * * * * *
  * Fetches the top tracks of an artist from Spotify.
  * @param {string} artistId - The Spotify ID of the artist.
  * @returns {Promise<Object | null>} - The artist or null if an error occurs.
