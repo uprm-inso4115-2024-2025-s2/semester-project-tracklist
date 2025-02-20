@@ -22,7 +22,7 @@ export default function SignUp() {
 
   const handleRegister = () => {
     Alert.alert("Pseudo Sign-Up", "This is a placeholder. No account is actually created.");
-    router.push("/menu");
+    router.push("(tabs)/menu");
   };
 
   return (
