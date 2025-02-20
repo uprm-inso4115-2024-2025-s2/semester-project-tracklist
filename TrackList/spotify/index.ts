@@ -110,3 +110,27 @@ export async function getTopTracks(artistId: string, country: string = "US"): Pr
     return null;
   }
 }
+
+/**
+ * * * * * * * * DRAFT * * * * * * * *
+ * Fetches the top tracks of an artist from Spotify.
+ * @param {string} artistId - The Spotify ID of the artist.
+ * @returns {Promise<Object | null>} - The artist or null if an error occurs.
+ */
+export async function getArtist(artistId: string): Promise<Object | null> {
+  try {
+    const token = await fetchToken(); // Retrieve access token
+    const response = await fetch(`${ARTISTS_API_URL}/${artistId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch artist: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error fetching artist:", error.message);
+    return null;
+  }
+}
