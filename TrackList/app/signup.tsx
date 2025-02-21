@@ -18,11 +18,40 @@ import CustomButton from "../components/CustomButton";
 
 export default function SignUp() {
   const router = useRouter();
+  const [password, setPassword] = useState(""); 
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   const handleRegister = () => {
+
+
+    if (!validatePassword(password)) {
+      return; 
+    }
     Alert.alert("Pseudo Sign-Up", "This is a placeholder. No account is actually created.");
     router.push("/menu");
+  };
+
+  const validatePassword = (password:string) => {
+    let errorMessages: string[] = [];
+
+    const upperCase = /[A-Z]/.test(password);
+    const lowerCase = /[a-z]/.test(password);
+    const number = /\d/.test(password);
+    const specialChar = /[-_@#$^*+.!=%()]/.test(password);
+    const length = password.length >= 8 && password.length <= 30;
+
+    if (!length) errorMessages.push("Password must be between 8 and 30 characters long.");
+    if (!upperCase) errorMessages.push("Password must contain at least one uppercase letter.");
+    if (!lowerCase) errorMessages.push("Password must contain at least one lowercase letter.");
+    if (!number) errorMessages.push("Password must contain at least one number.");
+    if (!specialChar) errorMessages.push("Password must contain at least one special character.");
+
+    if (errorMessages.length > 0) {
+      Alert.alert("Password Error", errorMessages.join("\n"));
+      console.log(errorMessages); //test
+      return false;
+    }
+    return true;
   };
 
   return (
@@ -53,14 +82,16 @@ export default function SignUp() {
               style={styles.passwordInput}
               placeholder="*******"
               secureTextEntry={!passwordVisible}
+              value={password} // Bind input to state
+              onChangeText={setPassword} // Update state on change
             />
             <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
               <Ionicons name={passwordVisible ? "eye" : "eye-off"} size={24} color="gray" />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.buttonContainer}> 
-                <CustomButton text="Register" onPress={handleRegister} />
+          <View style={styles.buttonContainer}>
+            <CustomButton text="Register" onPress={handleRegister} />
           </View>
 
           <Text style={styles.footerText}>
