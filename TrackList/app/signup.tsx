@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -27,6 +28,7 @@ export default function SignUp() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const userIcon = require("../assets/images/user-icon.png");
 
   const handleRegister = async () => {
     if (!fullName || !email || !dateOfBirth || !phoneNumber || !password) {
@@ -48,7 +50,8 @@ export default function SignUp() {
         dateOfBirth: dateOfBirth,
         phoneNumber: phoneNumber,
         uid: user.uid,
-        profilePicture: "TrackList/assets/images/icons8-customer-64.png", // Default avatar
+        profilePicture: Image.resolveAssetSource(userIcon).uri,
+        bio: "Hello! I'm new here.",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -56,7 +59,7 @@ export default function SignUp() {
       console.log("User registered:", user.uid);
       Alert.alert("Success", "Account created successfully!");
 
-      router.push("/menu");
+      router.replace("/menu");
     } catch (error) {
       let errorMessage = "An unknown error occurred.";
 
@@ -144,7 +147,7 @@ export default function SignUp() {
             Already have an account?{" "}
             <Text
               style={styles.loginLink}
-              onPress={() => router.push("/signin")}
+              onPress={() => router.replace("/signin")}
             >
               Login
             </Text>
