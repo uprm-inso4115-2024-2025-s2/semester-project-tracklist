@@ -2,12 +2,13 @@ import { Stack } from "expo-router";
 
 export default function Layout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="signup" options={{ title: "Sign Up" }} />
-      <Stack.Screen name="signin" options={{ title: "Sign In" }} />
-      <Stack.Screen name="homepage" options={{ title: "Home" }} />
-      <Stack.Screen name="profile" options={{ title: "Profile" }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="signup" />
+      <Stack.Screen name="signin" />
+      <Stack.Screen name="menu" />
+      <Stack.Screen name="search" />
+      <Stack.Screen name="homepage" />
     </Stack>
   );
 }

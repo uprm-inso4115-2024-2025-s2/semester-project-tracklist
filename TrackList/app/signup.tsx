@@ -17,8 +17,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import CustomButton from "../components/CustomButton";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection, doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../firebaseConfig"; // Make sure db is imported
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "../firebaseConfig";
 
 export default function SignUp() {
   const router = useRouter();
@@ -30,9 +30,46 @@ export default function SignUp() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const userIcon = require("../assets/images/user-icon.png");
 
+  const validatePassword = (password: string) => {
+    let errorMessages = [];
+
+    const upperCase = /[A-Z]/.test(password);
+    const lowerCase = /[a-z]/.test(password);
+    const number = /\d/.test(password);
+    const specialChar = /[-_@#$^*+.!=%()]/.test(password);
+    const length = password.length >= 8 && password.length <= 30;
+
+    if (!length)
+      errorMessages.push("Password must be between 8 and 30 characters long.");
+    if (!upperCase)
+      errorMessages.push(
+        "Password must contain at least one uppercase letter."
+      );
+    if (!lowerCase)
+      errorMessages.push(
+        "Password must contain at least one lowercase letter."
+      );
+    if (!number)
+      errorMessages.push("Password must contain at least one number.");
+    if (!specialChar)
+      errorMessages.push(
+        "Password must contain at least one special character."
+      );
+
+    if (errorMessages.length > 0) {
+      Alert.alert("Password Error", errorMessages.join("\n"));
+      return false;
+    }
+    return true;
+  };
+
   const handleRegister = async () => {
     if (!fullName || !email || !dateOfBirth || !phoneNumber || !password) {
       Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+
+    if (!validatePassword(password)) {
       return;
     }
 
@@ -58,15 +95,12 @@ export default function SignUp() {
 
       console.log("User registered:", user.uid);
       Alert.alert("Success", "Account created successfully!");
-
       router.replace("/menu");
     } catch (error) {
       let errorMessage = "An unknown error occurred.";
-
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-
       Alert.alert("Signup Error", errorMessage);
     }
   };
@@ -158,7 +192,6 @@ export default function SignUp() {
   );
 }
 
-// ✅ STYLES
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
