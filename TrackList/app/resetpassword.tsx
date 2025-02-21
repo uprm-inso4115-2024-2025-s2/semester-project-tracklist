@@ -8,12 +8,40 @@ export default function Index() {
   const router = useRouter();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+
+
+
+  const validatePassword = () => {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long.";
+    }
+    if (!/\d/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return "Password must include at least one number and one special character.";
+    }
+    if (password !== confirmPassword) {
+      return "Passwords do not match.";
+    }
+    return "";
+  };
+
   const handleResetPassword = () => {
+    const validationError = validatePassword();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    
+    setError(""); 
     setSuccessMessage("Password reset successful! Redirecting...");
     setTimeout(() => {
       router.push("/signin");
     }, 2000);
   };
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Reset Password</Text>
@@ -24,6 +52,7 @@ export default function Index() {
               style={styles.passwordInput}
               placeholder="*******"
               secureTextEntry={!passwordVisible}
+              onChangeText={(text) => setPassword(text)}
             />
             <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
               <Ionicons name={passwordVisible ? "eye" : "eye-off"} size={24} color="gray" />
@@ -35,11 +64,15 @@ export default function Index() {
               style={styles.passwordInput}
               placeholder="*******"
               secureTextEntry={!passwordVisible}
+              onChangeText={(text) => setConfirmPassword(text)}
             />
             <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
               <Ionicons name={passwordVisible ? "eye" : "eye-off"} size={24} color="gray" />
             </TouchableOpacity>
       </View> 
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
       <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
         <Text style={styles.buttonText}>Reset Password</Text>
       </TouchableOpacity>
@@ -112,4 +145,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
     },
+    errorText: {
+      color: "red",
+      fontSize: 14,
+      marginTop: 10,
+      fontWeight: "bold",
+    },    
   });
