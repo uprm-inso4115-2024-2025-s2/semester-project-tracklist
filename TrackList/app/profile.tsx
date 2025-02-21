@@ -81,6 +81,28 @@ export default function Profile() {
 
     if (!result.canceled) {
       const selectedImageUri = result.assets[0].uri;
+
+      const response = await fetch(selectedImageUri);
+      const blob = await response.blob();
+      const fileSize = blob.size / (1024 * 1024); // Convert bytes to MB
+
+      if (fileSize > 2) {
+        Alert.alert("File too large", "Please select an image under 2MB.");
+        return;
+      }
+
+      if (
+        !selectedImageUri.endsWith(".png") &&
+        !selectedImageUri.endsWith(".jpg") &&
+        !selectedImageUri.endsWith(".jpeg")
+      ) {
+        Alert.alert(
+          "Invalid file type",
+          "Only PNG and JPEG files are allowed."
+        );
+        return;
+      }
+
       setProfilePicture(selectedImageUri);
 
       try {
