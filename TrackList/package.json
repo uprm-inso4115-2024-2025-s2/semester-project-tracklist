@@ -2,6 +2,7 @@
   "name": "tracklist",
   "main": "expo-router/entry",
   "license": "0BSD",
+  "type": "module",
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
@@ -15,6 +16,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-navigation/native": "^7.0.14",
     "expo": "~52.0.28",
     "expo-font": "~13.0.3",
