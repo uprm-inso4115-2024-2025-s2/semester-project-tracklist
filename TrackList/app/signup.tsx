@@ -28,7 +28,7 @@ export default function SignUp() {
       return; 
     }
     Alert.alert("Pseudo Sign-Up", "This is a placeholder. No account is actually created.");
-    router.push("/menu");
+    router.push("(tabs)/menu");
   };
 
   const validatePassword = (password:string) => {
