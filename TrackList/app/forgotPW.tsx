@@ -1,48 +1,42 @@
-
-
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
+import { sendPasswordResetEmail } from "firebase/auth"
+import { auth } from "../firebaseConfig";
 
-export default function SignIn() {
+export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const router = useRouter();
+  const navigation = useNavigation();
 
-  const handleSignIn = () => {
-    console.log("Email:", email);
-    console.log("Password:", password);
-  };
-
+  const handleSubmit = async () => {
+    if (!email) {
+      alert("Please enter your email");
+      return;
+    }
   
-    
-  const handleResetPassword = () => {
-    router.push("/forgotPW");
+    try {
+      await sendPasswordResetEmail(auth, email);
+      alert("Password reset email sent!");
+      navigation.navigate("signin"); 
+    } catch (err) {
+      alert(err.code);
+    }
   };
+
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign In</Text>
+      <Text style={styles.title}>Forgot Password</Text>
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Enter your email"
         keyboardType="email-address"
         autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TouchableOpacity onPress={handleResetPassword}>
-        <Text style={styles.forgotPassword}>Forgot Password?</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleSignIn}>
-        <Text style={styles.buttonText}>Sign In</Text>
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>Reset Password</Text>
       </TouchableOpacity>
     </View>
   );
@@ -71,10 +65,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: "#fff",
   },
-  forgotPassword: {
-    color: "#007bff",
-    marginBottom: 20,
-  },
   button: {
     backgroundColor: "#007bff",
     padding: 10,
@@ -86,5 +76,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-
-
