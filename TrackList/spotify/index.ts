@@ -171,3 +171,25 @@ export async function getNewReleases() {
     return [];
   }
 }
+
+// Playlists
+
+export async function fetchSpotifyPlaylist(playlistId: string, accessToken: string) {
+  try {
+      const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+          method: "GET",
+          headers: {
+              "Authorization": `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+          },
+      });
+      if (!response.ok) {
+          throw new Error(`Error fetching playlist: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data;
+  } catch (error) {
+      console.error("Failed to fetch playlist:", error);
+      return null;
+  }
+}
