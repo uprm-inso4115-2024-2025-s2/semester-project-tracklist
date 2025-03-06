@@ -80,7 +80,6 @@ export async function getTrackById(trackId: string) {
   } catch (error: any) {
     console.error("Error fetching track:", error.response?.data || error.message);
 
-    // ✅ Ensure we always return a valid object (not null)
     return { 
       trackInfo: {
         trackName: "Unknown",
@@ -88,7 +87,7 @@ export async function getTrackById(trackId: string) {
         albumCover: "",
         releaseDate: "Unknown",
       }, 
-      stringArray: ["❌ Error fetching track data."]
+      stringArray: ["Error fetching track data."]
     };
   }
 }
