@@ -72,9 +72,7 @@ const Menu: React.FC = () => {
       },
     ];
 
-    // Repeat songs to fill more rows
-    const repeatedSongs = Array(3).fill(mockSongs).flat();
-    setSongs(repeatedSongs);
+    setSongs(mockSongs);
   }, []);
 
   return (
@@ -94,22 +92,23 @@ const Menu: React.FC = () => {
 
       <View style={styles.tabRow}>
         <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === "songs" && styles.activeTab,
-          ]}
+          style={[styles.tabButton, selectedTab === "songs" && styles.activeTab]}
           onPress={() => setSelectedTab("songs")}
         >
           <Text style={styles.tabButtonText}>Songs</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === "reviews" && styles.activeTab,
-          ]}
+          style={[styles.tabButton, selectedTab === "reviews" && styles.activeTab]}
           onPress={() => setSelectedTab("reviews")}
         >
           <Text style={styles.tabButtonText}>Reviews</Text>
+        </TouchableOpacity>
+        {/* Activity Tab */}
+        <TouchableOpacity
+          style={[styles.tabButton]}
+          onPress={() => router.push("/activity")} // Navigates to activity.tsx
+        >
+          <Text style={styles.tabButtonText}>Activity</Text>
         </TouchableOpacity>
       </View>
 
@@ -117,7 +116,7 @@ const Menu: React.FC = () => {
         <FlatList
           data={songs}
           keyExtractor={(item, index) => index.toString()}
-          numColumns={2} // Two columns
+          numColumns={2}
           renderItem={({ item }) => (
             <View style={styles.songCard}>
               <Image source={item.cover} style={styles.songCover} />
@@ -145,12 +144,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fcfcfc",
     padding: 20,
   },
-  albumCover: {
-    width: "100%",
-    borderRadius: 10,
-    marginBottom: 10,
-    resizeMode: "contain",
-  },
   tracklistTitle: {
     fontSize: 28,
     fontWeight: "bold",
@@ -164,7 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   tabButton: {
-    width: 172,
+    width: 115,
     height: 50,
     padding: 10,
     marginHorizontal: 4.5,
@@ -185,13 +178,13 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   songCard: {
-    width: "48%", // 48% to allow spacing between items
+    width: "48%",
     backgroundColor: "#222",
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
     marginBottom: 15,
-    marginHorizontal: "1%", // Add spacing between columns
+    marginHorizontal: "1%",
   },
   songCover: {
     width: 150,
@@ -226,7 +219,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 10,
   },
-
   profileIconButton: {
     width: 50,
     height: 50,
@@ -235,7 +227,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   profileIcon: {
     width: 40,
     height: 40,
