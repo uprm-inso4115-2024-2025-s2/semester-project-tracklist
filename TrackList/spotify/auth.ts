@@ -1,6 +1,6 @@
-export const CLIENT_ID = "899865a744694fe5908c835fa65e5843";
-export const CLIENT_SECRET = "6b5716f9b00b4614902a0a4e85cee4ea";
-export const TOKEN_URL = "https://accounts.spotify.com/api/token";
+const CLIENT_ID = process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID;
+const CLIENT_SECRET = process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_SECRET;
+const TOKEN_URL = process.env.EXPO_PUBLIC_SPOTIFY_TOKEN_URL as string;
 
 export const fetchToken = async () => {
   try {
