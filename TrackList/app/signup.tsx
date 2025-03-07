@@ -95,7 +95,7 @@ export default function SignUp() {
 
       console.log("User registered:", user.uid);
       Alert.alert("Success", "Account created successfully!");
-      router.replace("/menu");
+      router.replace("../(tabs)/menu");
     } catch (error) {
       let errorMessage = "An unknown error occurred.";
       if (error instanceof Error) {
