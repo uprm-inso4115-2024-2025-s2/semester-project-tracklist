@@ -33,9 +33,30 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
 
-  const handleRegister = () => {
-    Alert.alert("Pseudo Sign-Up", "This is a placeholder. No account is actually created.");
-    router.push("/menu");
+  const handleRegister = async () => {
+    if (!fullName || !email || !password) {
+      Alert.alert("Error", "Please fill in all required fields.");
+      return;
+    }
+  
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+  
+      // Save additional user data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        fullName,
+        email,
+        dateOfBirth,
+        phoneNumber,
+        createdAt: new Date(),
+      });
+  
+      Alert.alert("Success", "Account created successfully!");
+      router.push("/menu");
+    } catch (error) {
+      Alert.alert("Registration Error", error.message);
+    }
   };
 
   return (
