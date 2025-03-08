@@ -15,11 +15,6 @@ export default function Index() {
       <TouchableOpacity style={styles.button} onPress={() => router.push("/signup")}>
         <Text style={styles.buttonText}>Sign Up</Text>
       </TouchableOpacity>
-
-
-      <TouchableOpacity style={styles.button} onPress={() => router.push("/profile")}>
-        <Text style={styles.buttonText}>profile</Text>
-      </TouchableOpacity>
     </View>
   );
 }
