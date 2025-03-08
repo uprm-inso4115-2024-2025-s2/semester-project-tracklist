@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,10 +15,35 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import CustomButton from "../components/CustomButton";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { auth } from "../firebaseConfig"; // Updated path
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignUp() {
   const router = useRouter();
   const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: "631878773843-6plru7v2kh7hv4ajeqltc9ac5jd1fimf.apps.googleusercontent.com",
+    iosClientId: "1:631878773843:ios:7af497ae0a00c47eb26aa6",
+    androidClientId: "1:631878773843:android:166157b5ac4bc195b26aa6",
+  });
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      const credential = GoogleAuthProvider.credential(id_token);
+      signInWithCredential(auth, credential)
+        .then((userCredential) => {
+          Alert.alert("Welcome!", `Signed in as ${userCredential.user.email}`);
+          router.push("/menu");
+        })
+        .catch((error) => Alert.alert("Authentication Error", error.message));
+    }
+  }, [response]);
 
   const handleRegister = () => {
     Alert.alert("Pseudo Sign-Up", "This is a placeholder. No account is actually created.");
@@ -59,8 +84,16 @@ export default function SignUp() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.buttonContainer}> 
-                <CustomButton text="Register" onPress={handleRegister} />
+          <View style={styles.buttonContainer}>
+            <CustomButton text="Register" onPress={handleRegister} />
+            <TouchableOpacity
+              style={styles.googleButton}
+              disabled={!request}
+              onPress={() => promptAsync()}
+            >
+              <Ionicons name="logo-google" size={24} color="#fff" />
+              <Text style={styles.googleButtonText}>Sign Up with Google</Text>
+            </TouchableOpacity>
           </View>
 
           <Text style={styles.footerText}>
@@ -118,17 +151,23 @@ const styles = StyleSheet.create({
   passwordInput: {
     flex: 1,
   },
-  registerButton: {
-    backgroundColor: "#28a745",
+  buttonContainer: {
+    marginTop: 20,
+  },
+  googleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#DB4437",
     padding: 15,
     borderRadius: 8,
-    marginTop: 20,
-    alignItems: "center",
+    marginTop: 15,
   },
-  registerButtonText: {
+  googleButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+    marginLeft: 10,
   },
   footerText: {
     marginTop: 15,
@@ -137,8 +176,5 @@ const styles = StyleSheet.create({
   loginLink: {
     color: "#28a745",
     fontWeight: "bold",
-  },
-  buttonContainer: {
-    marginTop: 20, 
   },
 });
