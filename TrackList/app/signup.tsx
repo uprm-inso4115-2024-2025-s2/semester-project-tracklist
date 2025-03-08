@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
@@ -16,6 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import CustomButton from "../components/CustomButton";
+import InputField from "../components/InputField";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
@@ -27,12 +26,11 @@ export default function SignUp() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordVisible, setPasswordVisible] = useState(false);
+
   const userIcon = require("../assets/images/user-icon.png");
 
   const validatePassword = (password: string) => {
     let errorMessages = [];
-
     const upperCase = /[A-Z]/.test(password);
     const lowerCase = /[a-z]/.test(password);
     const number = /\d/.test(password);
@@ -42,19 +40,13 @@ export default function SignUp() {
     if (!length)
       errorMessages.push("Password must be between 8 and 30 characters long.");
     if (!upperCase)
-      errorMessages.push(
-        "Password must contain at least one uppercase letter."
-      );
+      errorMessages.push("Password must contain at least one uppercase letter.");
     if (!lowerCase)
-      errorMessages.push(
-        "Password must contain at least one lowercase letter."
-      );
+      errorMessages.push("Password must contain at least one lowercase letter.");
     if (!number)
       errorMessages.push("Password must contain at least one number.");
     if (!specialChar)
-      errorMessages.push(
-        "Password must contain at least one special character."
-      );
+      errorMessages.push("Password must contain at least one special character.");
 
     if (errorMessages.length > 0) {
       Alert.alert("Password Error", errorMessages.join("\n"));
@@ -105,12 +97,15 @@ export default function SignUp() {
     }
   };
 
+  const ContainerWrapper =
+    Platform.OS === "web" ? React.Fragment : TouchableWithoutFeedback;
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ContainerWrapper {...(Platform.OS !== "web" && { onPress: Keyboard.dismiss })}>
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
@@ -118,60 +113,44 @@ export default function SignUp() {
           <Text style={styles.title}>Sign up</Text>
           <Text style={styles.subtitle}>Create an account to continue!</Text>
 
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={styles.input}
+          <InputField
+            label="Full Name"
             placeholder="Full Name"
             value={fullName}
             onChangeText={setFullName}
           />
 
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
+          <InputField
+            label="Email"
             placeholder="Email"
-            keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
+            inputType="email"
           />
 
-          <Text style={styles.label}>Date of Birth</Text>
-          <TextInput
-            style={styles.input}
+          <InputField
+            label="Date of Birth"
             placeholder="DD/MM/YYYY"
-            keyboardType="numeric"
             value={dateOfBirth}
             onChangeText={setDateOfBirth}
+            keyboardType="numeric"
           />
 
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={styles.input}
+          <InputField
+            label="Phone Number"
             placeholder="(XXX) XXX-XXXX"
-            keyboardType="phone-pad"
             value={phoneNumber}
             onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
           />
 
-          <Text style={styles.label}>Set Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="*******"
-              secureTextEntry={!passwordVisible}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity
-              onPress={() => setPasswordVisible(!passwordVisible)}
-            >
-              <Ionicons
-                name={passwordVisible ? "eye" : "eye-off"}
-                size={24}
-                color="gray"
-              />
-            </TouchableOpacity>
-          </View>
+          <InputField
+            label="Set Password"
+            placeholder="*******"
+            value={password}
+            onChangeText={setPassword}
+            inputType="password"
+          />
 
           <View style={styles.buttonContainer}>
             <CustomButton text="Register" onPress={handleRegister} />
@@ -180,14 +159,14 @@ export default function SignUp() {
           <Text style={styles.footerText}>
             Already have an account?{" "}
             <Text
-              style={styles.loginLink}
+              style={styles.link}
               onPress={() => router.replace("/signin")}
             >
               Login
             </Text>
           </Text>
         </ScrollView>
-      </TouchableWithoutFeedback>
+      </ContainerWrapper>
     </KeyboardAvoidingView>
   );
 }
@@ -211,25 +190,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
-  label: { fontSize: 14, fontWeight: "500", marginTop: 10 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 5,
+  buttonContainer: {
+    marginTop: 20,
   },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 5,
+  footerText: {
+    marginTop: 15,
+    textAlign: "center",
   },
-  passwordInput: { flex: 1 },
-  buttonContainer: { marginTop: 20 },
-  footerText: { marginTop: 15, textAlign: "center" },
-  loginLink: { color: "#28a745", fontWeight: "bold" },
+  link: {
+    color: "#28a745",
+    fontWeight: "bold",
+  },
 });
