@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,10 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import CustomButton from "../components/CustomButton";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+WebBrowser.maybeCompleteAuthSession();
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
@@ -28,81 +32,10 @@ export default function SignUp() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const userIcon = require("../assets/images/user-icon.png");
 
-  const validatePassword = (password: string) => {
-    let errorMessages = [];
-
-    const upperCase = /[A-Z]/.test(password);
-    const lowerCase = /[a-z]/.test(password);
-    const number = /\d/.test(password);
-    const specialChar = /[-_@#$^*+.!=%()]/.test(password);
-    const length = password.length >= 8 && password.length <= 30;
-
-    if (!length)
-      errorMessages.push("Password must be between 8 and 30 characters long.");
-    if (!upperCase)
-      errorMessages.push(
-        "Password must contain at least one uppercase letter."
-      );
-    if (!lowerCase)
-      errorMessages.push(
-        "Password must contain at least one lowercase letter."
-      );
-    if (!number)
-      errorMessages.push("Password must contain at least one number.");
-    if (!specialChar)
-      errorMessages.push(
-        "Password must contain at least one special character."
-      );
-
-    if (errorMessages.length > 0) {
-      Alert.alert("Password Error", errorMessages.join("\n"));
-      return false;
-    }
-    return true;
-  };
-
-  const handleRegister = async () => {
-    if (!fullName || !email || !dateOfBirth || !phoneNumber || !password) {
-      Alert.alert("Error", "Please fill in all fields.");
-      return;
-    }
-
-    if (!validatePassword(password)) {
-      return;
-    }
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-
-      await setDoc(doc(db, "users", user.uid), {
-        fullName: fullName,
-        email: email,
-        dateOfBirth: dateOfBirth,
-        phoneNumber: phoneNumber,
-        uid: user.uid,
-        profilePicture: Image.resolveAssetSource(userIcon).uri,
-        bio: "Hello! I'm new here.",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      console.log("User registered:", user.uid);
-      Alert.alert("Success", "Account created successfully!");
-      router.replace("../(tabs)/menu");
-    } catch (error) {
-      let errorMessage = "An unknown error occurred.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      Alert.alert("Signup Error", errorMessage);
-    }
+  const handleRegister = () => {
+    Alert.alert("Pseudo Sign-Up", "This is a placeholder. No account is actually created.");
+    router.push("/menu");
   };
 
   return (
