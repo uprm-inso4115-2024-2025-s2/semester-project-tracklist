@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
+import { Keyboard, TouchableWithoutFeedback, ScrollView } from "react-native";
 
 // Define user data type
 interface UserData {
@@ -19,6 +21,8 @@ interface UserData {
   email: string;
   bio: string;
   profilePicture: string;
+  dateOfBirth: string; 
+  phoneNumber: string;
 }
 
 export default function Profile() {
@@ -126,13 +130,30 @@ export default function Profile() {
   if (!userData) return <Text>Loading...</Text>;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.searchTitle}>Profile</Text>
-      <TouchableOpacity onPress={handlePickImage}>
-        <Image source={{ uri: profilePicture }} style={styles.profileImage} />
-      </TouchableOpacity>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView>
+        <ScrollView>
+        <View style={styles.container}>
+      <View style={styles.profileContainer}>
+        <Image
+          source={{ uri: profilePicture }}
+          style={styles.profileBackground}
+        />
+        <TouchableOpacity onPress={handlePickImage}>
+          <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+        </TouchableOpacity>
+      </View>
+
       <Text style={styles.name}>{userData.fullName}</Text>
       <Text style={styles.email}>{userData.email}</Text>
+
+      {/* Display Date of Birth */}
+      <Text style={styles.label}>Date of Birth</Text>
+      <Text style={styles.infoText}>{userData.dateOfBirth || "Not provided"}</Text>
+
+      {/* Display Phone Number */}
+      <Text style={styles.label}>Phone Number</Text>
+      <Text style={styles.infoText}>{userData.phoneNumber || "Not provided"}</Text>
 
       <Text style={styles.label}>Bio</Text>
       <TextInput
@@ -151,11 +172,17 @@ export default function Profile() {
 
       <TouchableOpacity
         style={styles.menuButton}
-        onPress={() => router.replace("/menu")}
+        onPress={() => router.replace("../(tabs)/menu")}
       >
         <Text style={styles.menuButtonText}>Back to Menu</Text>
       </TouchableOpacity>
     </View>
+        </ScrollView>
+    
+      </KeyboardAvoidingView>
+   
+    </TouchableWithoutFeedback>
+
   );
 }
 
@@ -164,39 +191,94 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#121212",
   },
-  profileImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 20 },
-  name: { fontSize: 22, fontWeight: "bold" },
-  email: { fontSize: 16, color: "gray", marginBottom: 10 },
-  label: { fontSize: 16, fontWeight: "500", marginTop: 20 },
+  profileContainer: {
+    width: "100%",
+    height: 200,
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1E1E1E",
+  },
+  profileBackground: {
+    position: "absolute",
+    top: 0,
+    width: "100%",
+    height: "100%",
+    opacity: 0.3,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: "#00FF99",
+    position: "absolute",
+    bottom: -50,
+    alignSelf: "center",
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginTop: 60,
+    marginBottom: 5,
+  },
+  email: {
+    fontSize: 14,
+    color: "#AAAAAA",
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#FFFFFF",
+    alignSelf: "flex-start",
+    marginLeft: "10%",
+    marginTop: 10,
+  },
+  infoText: {
+    fontSize: 14,
+    color: "#CCCCCC",
+    alignSelf: "flex-start",
+    marginLeft: "10%",
+    marginBottom: 10,
+  },
   bioInput: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#333333",
+    backgroundColor: "#1E1E1E",
     padding: 10,
     borderRadius: 8,
-    width: "80%",
+    width: "90%",
+    color: "#FFFFFF",
     height: 80,
   },
   updateButton: {
     marginTop: 20,
-    backgroundColor: "#28a745",
-    padding: 10,
+    backgroundColor: "#00FF99",
+    padding: 12,
     borderRadius: 8,
+    width: "90%",
+    alignItems: "center",
   },
-  updateButtonText: { color: "#fff", fontWeight: "bold" },
+  updateButtonText: {
+    color: "#000000",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
   menuButton: {
     marginTop: 10,
-    backgroundColor: "#007bff",
+    backgroundColor: "#444444",
     padding: 10,
     borderRadius: 8,
+    width: "90%",
+    alignItems: "center",
   },
-  menuButtonText: { color: "#fff", fontWeight: "bold" },
-  searchTitle: {
-    fontSize: 28,
+  menuButtonText: {
+    color: "#FFFFFF",
     fontWeight: "bold",
-    color: "black",
-    textAlign: "center",
-    marginTop: 55,
   },
 });
+

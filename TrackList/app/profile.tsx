@@ -163,32 +163,86 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#121212", // Dark background
   },
-  profileImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 20 },
-  name: { fontSize: 22, fontWeight: "bold" },
-  email: { fontSize: 16, color: "gray", marginBottom: 10 },
-  label: { fontSize: 16, fontWeight: "500", marginTop: 20 },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: "#00FF99", // Neon green border
+    marginBottom: 20,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FFFFFF", // White text
+    marginBottom: 5,
+  },
+  email: {
+    fontSize: 14,
+    color: "#AAAAAA", // Light gray text
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#FFFFFF",
+    alignSelf: "flex-start",
+    marginLeft: "10%",
+    marginTop: 10,
+  },
   bioInput: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#333333",
+    backgroundColor: "#1E1E1E",
     padding: 10,
     borderRadius: 8,
-    width: "80%",
+    width: "90%",
+    color: "#FFFFFF",
     height: 80,
   },
   updateButton: {
     marginTop: 20,
-    backgroundColor: "#28a745",
-    padding: 10,
+    backgroundColor: "#00FF99", // Neon green button
+    padding: 12,
     borderRadius: 8,
+    width: "90%",
+    alignItems: "center",
   },
-  updateButtonText: { color: "#fff", fontWeight: "bold" },
+  updateButtonText: {
+    color: "#000000", // Black text on neon button
+    fontWeight: "bold",
+    fontSize: 16,
+  },
   menuButton: {
     marginTop: 10,
-    backgroundColor: "#007bff",
+    backgroundColor: "#444444",
     padding: 10,
     borderRadius: 8,
+    width: "90%",
+    alignItems: "center",
   },
-  menuButtonText: { color: "#fff", fontWeight: "bold" },
+  menuButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+  },
+  searchTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    textAlign: "center",
+    marginTop: 40,
+  },
+  textInput: {
+    width: "90%",
+    backgroundColor: "#1E1E1E",
+    borderColor: "#333333",
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    color: "#FFFFFF",
+    fontSize: 14,
+    marginBottom: 15,
+  },
 });
