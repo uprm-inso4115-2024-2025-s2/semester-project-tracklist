@@ -204,12 +204,21 @@ export async function getNewReleases() {
 
 // Playlists
 
-export async function fetchSpotifyPlaylist(playlistId: string, accessToken: string) {
+/**
+ * Fetches a Spotify playlist's metadata and tracks.
+ *
+ * @param {string} playlistId - The Spotify playlist ID.
+ * @returns {Promise<{playlistInfo: object, playlistTracks: object[]} | null>}
+ *          A promise that resolves to an object containing playlist metadata and an array of tracks,
+ *          or null if the playlist is empty or an error occurs.
+ */
+export async function fetchSpotifyPlaylist(playlistId: string) {
+  const token = await fetchToken();
   try {
       const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
           method: "GET",
           headers: {
-              "Authorization": `Bearer ${accessToken}`,
+              "Authorization": `Bearer ${token}`,
               "Content-Type": "application/json",
           },
       });
@@ -217,7 +226,30 @@ export async function fetchSpotifyPlaylist(playlistId: string, accessToken: stri
           throw new Error(`Error fetching playlist: ${response.status} ${response.statusText}`);
       }
       const data = await response.json();
-      return data;
+      const playlistInfo = {
+        collaborative: data.collaborative, // Boolean
+        description: data.description, // May be null
+        externalURLs: data.external_urls,
+        followers: data.followers,
+        href: data.href,
+        id: data.id,
+        images: data.images,
+        name: data.name,
+        owner: data.owner,
+        public: data.public, // Boolean
+        snapshotId: data.snapshot_id,
+        uri: data.uri // Spotify uri for the playlist
+      };
+      const playlistLength = data.tracks.total;
+      if (playlistLength <= 0) {
+        console.error("Playlist is empty");
+        return null;
+      }
+      let playlistTracks = [];
+      for (let i = 0; i < playlistLength; i++) {
+        playlistTracks.push(data.tracks.items[i]);
+      }
+      return {playlistInfo, playlistTracks};
   } catch (error) {
       console.error("Failed to fetch playlist:", error);
       return null;
