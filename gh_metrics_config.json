@@ -1,6 +1,6 @@
 {
     "version": "2.0",
-    "projectName": "tracklist",
+    "projectName": "TrackList",
     "managers": ["evnd04", "Gian-Go"],
     "milestones": {
       "Milestone 1": {
@@ -9,12 +9,12 @@
         "projectedGroupGrade": 100.0
       },
       "Milestone 2": {
-        "startDate": "2025-02-28",
+        "startDate": "2025-02-24",
         "endDate": "2025-03-21",
         "projectedGroupGrade": 100.0
       },
       "Milestone 3": {
-        "startDate": "2025-03-30",
+        "startDate": "2025-03-24",
         "endDate": "2025-04-30",
         "projectedGroupGrade": 100.0
       }
