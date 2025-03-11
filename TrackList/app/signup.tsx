@@ -74,12 +74,16 @@ export default function SignUp() {
     }
 
     try {
+      console.log("Attempting to create user with Firebase...");
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
+      console.log("User successfully created in Firebase Auth:", userCredential.user.uid);
+
       const user = userCredential.user;
+      console.log("Attempting to store user data in Firestore...");
 
       await setDoc(doc(db, "users", user.uid), {
         fullName: fullName,
@@ -97,6 +101,8 @@ export default function SignUp() {
       Alert.alert("Success", "Account created successfully!");
       router.replace("../(tabs)/menu");
     } catch (error) {
+      console.log("Error occurred during registration:", error);
+
       let errorMessage = "An unknown error occurred.";
       if (error instanceof Error) {
         errorMessage = error.message;
