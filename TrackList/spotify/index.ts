@@ -112,8 +112,7 @@ export const getSeveralTracks = async (trackIds: string[]): Promise<Object[] | n
     if (!response.ok) {
       throw new Error(`Failed to fetch multiple tracks: ${response.statusText}`);
     } else {
-      const data = await response.json();
-      return data.tracks;
+      return await response.json();
     }
   } catch (error: any) {
     console.error("Error fetching multiple tracks:", error.response?.data || error.message);
