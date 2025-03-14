@@ -169,15 +169,52 @@ export async function getArtist(artistId: string): Promise<Object | null> {
  * Fetches the top tracks of an artist from Spotify.
  * @param {string} artistId - The Spotify ID of the artist.
  * @returns {Promise<Object | null>} - The artist or null if an error occurs.
+ * Needed to declare an interface for the Album structure (SpotifyAlbum) so we can go 
+ * through the array of objects.
  */
+
+interface SpotifyAlbum {
+  name: string;
+  release_date: string;
+  total_tracks: number;
+  images: { url: string }[];
+  external_urls: { spotify: string };
+}
+
 export const getAlbumsFromArtist = async (artistId: string) => {
-  const token = await fetchToken();
-  if (!token) return [];
-  const response = await fetch(`${ARTISTS_API_URL}/${artistId}/albums`, {
+  try{
+    const token = await fetchToken();
+    if (!token) throw new Error("Failed to retrieve access token.");
+  
+    const response = await fetch(`${ARTISTS_API_URL}/${artistId}/albums`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  if (!response.ok) {
+    throw new Error(`HTTP error! Status: ${response.status}`);
+  }
   const data = await response.json();
-  return data.items || [];
+
+  const albumObjects = (data.items as SpotifyAlbum[]).map((album) => ({
+    albumName: album.name,
+    releaseDate: album.release_date,
+    totalTracks: album.total_tracks,
+    albumCover: album.images[0]?.url || "",
+    spotifyUrl: album.external_urls.spotify,
+  }));
+
+  const stringArray = albumObjects.map(
+    (album) =>
+      `Album: ${album.albumName}, Released: ${album.releaseDate}, Tracks: ${album.totalTracks}, Listen: ${album.spotifyUrl}`
+  );
+  return { albumObjects, stringArray };
+  } catch (error: any) {
+    console.error("Error fetching albums:", error.response?.data || error.message);
+
+    return {
+      albumObjects: [],
+      stringArray: ["Error fetching album data."],
+    };
+  }
 };
 
 export async function getNewReleases() {
