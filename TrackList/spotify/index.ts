@@ -8,6 +8,18 @@ import { fetchToken } from "../spotify/auth";
 
 const SEARCH_URL = "https://api.spotify.com/v1/search";
 
+/**
+ * Helper function that parses a spotify link to extract item type and item ID
+ * @param link 
+ * @returns itemType(playlist, track, etc.), ItemID
+ */
+export async function parseSpotifyLink(link: string) {
+  const splitLink = link.split("/")
+  const itemType = splitLink[3];
+  const itemID = splitLink[4].split("?")[0];
+  return { itemType, itemID };
+};
+
 // Usage:
 // Import searchAlbums from "./spotify/index" and call it with a search query string.
 // Example:
