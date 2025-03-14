@@ -92,6 +92,35 @@ export async function getTrackById(trackId: string) {
   }
 }
 
+/**
+ * Fetch multiple tracks' details from Spotify API.
+ * @param {string[]} trackIds - An array of Spotify track IDs.
+ * @returns {Promise<Object[] | null>} - An array of track data or null if an error occurs.
+ */
+export const getSeveralTracks = async (trackIds: string[]): Promise<Object[] | null> => {
+  try {
+    if (trackIds.length === 0) {
+      throw new Error("No track IDs provided.");
+    }
+
+    // Convert the array of IDs into a comma-separated string
+    const idsString = trackIds.join(",");
+
+    // Make the API call
+    const response = await fetch(`${SPOTIFY_API_URL}?ids=${idsString}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch multiple tracks: ${response.statusText}`);
+    } else {
+      const data = await response.json();
+      return data.tracks;
+    }
+  } catch (error: any) {
+    console.error("Error fetching multiple tracks:", error.response?.data || error.message);
+    return null;
+  }
+};
+
 // Note: these constant should be on the Env section
 const ARTISTS_API_URL = "https://api.spotify.com/v1/artists";
 
