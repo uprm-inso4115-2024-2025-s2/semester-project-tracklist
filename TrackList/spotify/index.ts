@@ -166,6 +166,34 @@ export async function getArtist(artistId: string): Promise<Object | null> {
 }
 
 /**
+ * Fetch multiple artists' details from Spotify API.
+ * @param {string[]} artistIds - An array of Spotify artist IDs.
+ * @returns {Promise<Object[] | null>} - An array of artist data or null if an error occurs.
+ */
+export const getSeveralArtists = async (artistIds: string[]): Promise<Object[] | null> => {
+  try {
+    if (artistIds.length === 0) {
+      throw new Error("No artist IDs provided.");
+    }
+
+    // Convert the array of IDs into a comma-separated string
+    const idsString = artistIds.join(",");
+
+    // Make the API call
+    const response = await fetch(`${ARTISTS_API_URL}?ids=${idsString}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch multiple artists: ${response.statusText}`);
+    } else {
+      return await response.json();
+    }
+  } catch (error: any) {
+    console.error("Error fetching multiple artists:", error.response?.data || error.message);
+    return null;
+  }
+};
+
+/**
  * Fetches the top tracks of an artist from Spotify.
  * @param {string} artistId - The Spotify ID of the artist.
  * @returns {Promise<Object | null>} - The artist or null if an error occurs.
