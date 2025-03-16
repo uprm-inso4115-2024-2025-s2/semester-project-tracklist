@@ -23,22 +23,6 @@ export const searchAlbums = async (query: string) => {
   return data.albums?.items || [];
 };
 
-const ALBUM_TRACKS_URL = "https://api.spotify.com/v1/albums";
-
-// Usage:
-// Import getAlbumTracks from "./spotify/index" and call it with an album ID.
-// Example:
-// const tracks = await getAlbumTracks("4aawyAB9vmqN3uQ7FjRGTy");
-
-export const getAlbumTracks = async (albumId: string) => {
-  const token = await fetchToken();
-  if (!token) return [];
-  const response = await fetch(`${ALBUM_TRACKS_URL}/${albumId}/tracks`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const data = await response.json();
-  return data.items || [];
-};
 
 const SPOTIFY_API_URL = "https://api.spotify.com/v1/tracks";
 
@@ -150,27 +134,6 @@ export const getAlbumsFromArtist = async (artistId: string) => {
   return data.items || [];
 };
 
-export async function getNewReleases() {
-  try {
-    const token = await fetchToken();
-    const response = await fetch("https://api.spotify.com/v1/browse/new-releases", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) {
-      throw new Error(`Spotify API error: ${response.statusText}`);
-    }
-    const data = await response.json();
-    return data.albums.items.map((album: any) => ({
-      id: album.id,
-      name: album.name,
-      artist: album.artists.map((artist: any) => artist.name).join(", "),
-      image: album.images[0]?.url,
-    }));
-  } catch (error: any) {
-    console.error("Error fetching new releases:", error.message);
-    return [];
-  }
-}
 
 // Playlists
 
