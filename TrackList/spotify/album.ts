@@ -15,7 +15,12 @@ export const getAlbumTracks = async (albumId: string) => {
     const response = await axios.get(`${ALBUM_TRACKS_URL}/${albumId}/tracks`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data.items || [];
+    return response.data.items.map((track: any) => ({
+        id: track.id,
+        name: track.name,
+        duration_ms: track.duration_ms,
+        artist: track.artists.map((artist: any) => artist.name).join(", "), // Extract artist name
+      }));
   } catch (error) {
     console.error("Error fetching album tracks:", error);
     return [];
