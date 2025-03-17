@@ -1,18 +1,10 @@
-import Colors from "@/constants/Colors";
-import { useNavigation, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
+import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 const userIcon = require("../assets/images/user-icon.png");
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  FlatList,
-} from "react-native";
 
 interface Song {
   cover: any;
@@ -21,12 +13,101 @@ interface Song {
   date: string;
 }
 
-const Menu: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState<"songs" | "reviews">("songs");
-  const [songs, setSongs] = useState<Song[]>([]);
-  const navigation = useNavigation();
+/* ----- Header Component ----- */
+const MenuHeader: React.FC<{ profilePicture: string | null }> = ({ profilePicture }) => {
   const router = useRouter();
+  return (
+    <View style={styles.header}>
+      <Text style={styles.tracklistTitle}>Tracklist</Text>
+      <TouchableOpacity
+        style={styles.profileIconButton}
+        onPress={() => router.replace("/profile")}
+      >
+        <Image
+          source={profilePicture ? { uri: profilePicture } : userIcon}
+          style={styles.profileIcon}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+/* ----- Tab Toggle Component ----- */
+export type TabKey = "songs" | "reviews";
+
+interface TabConfig {
+  key: TabKey;
+  label: string;
+}
+
+const tabConfigs: TabConfig[] = [
+  { key: "songs", label: "Songs" },
+  { key: "reviews", label: "Reviews" },
+];
+
+interface TabToggleProps {
+  activeTab: TabKey;
+  onTabChange: (tab: TabKey) => void;
+}
+
+const TabToggle: React.FC<TabToggleProps> = ({ activeTab, onTabChange }) => {
+  return (
+    <View style={styles.tabRow}>
+      {tabConfigs.map((tab) => (
+        <TouchableOpacity
+          key={tab.key}
+          style={[
+            styles.tabButton,
+            activeTab === tab.key && styles.activeTab,
+          ]}
+          onPress={() => onTabChange(tab.key)}
+        >
+          <Text style={styles.tabButtonText}>{tab.label}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+};
+
+/* ----- SongGrid Component ----- */
+interface SongGridProps {
+  songs: Song[];
+}
+
+const SongGrid: React.FC<SongGridProps> = ({ songs }) => {
+  return (
+    <FlatList
+      data={songs}
+      keyExtractor={(item, index) => index.toString()}
+      numColumns={2}
+      renderItem={({ item }) => (
+        <View style={styles.songCard}>
+          <Image source={item.cover} style={styles.songCover} />
+          <Text style={styles.songName}>{item.name}</Text>
+          <Text style={styles.songArtist}>{item.artist}</Text>
+          <Text style={styles.songDate}>{item.date}</Text>
+        </View>
+      )}
+      contentContainerStyle={styles.songList}
+    />
+  );
+};
+
+/* ----- ReviewSection Component ----- */
+const ReviewSection: React.FC = () => {
+  return (
+    <View style={styles.reviewsSection}>
+      <Text style={{ color: "#fff" }}>Reviews content goes here.</Text>
+    </View>
+  );
+};
+
+/* ----- Main Menu Component ----- */
+const Menu: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<TabKey>("songs");
+  const [songs, setSongs] = useState<Song[]>([]);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     navigation.setOptions({ title: "" });
@@ -72,84 +153,28 @@ const Menu: React.FC = () => {
       },
     ];
 
-    // Repeat songs to fill more rows
     const repeatedSongs = Array(3).fill(mockSongs).flat();
     setSongs(repeatedSongs);
   }, []);
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.tracklistTitle}>Tracklist</Text>
-        <TouchableOpacity
-          style={styles.profileIconButton}
-          onPress={() => router.replace("/profile")}
-        >
-          <Image
-            source={profilePicture ? { uri: profilePicture } : userIcon}
-            style={styles.profileIcon}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.tabRow}>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === "songs" && styles.activeTab,
-          ]}
-          onPress={() => setSelectedTab("songs")}
-        >
-          <Text style={styles.tabButtonText}>Songs</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === "reviews" && styles.activeTab,
-          ]}
-          onPress={() => setSelectedTab("reviews")}
-        >
-          <Text style={styles.tabButtonText}>Reviews</Text>
-        </TouchableOpacity>
-      </View>
-
-      {selectedTab === "songs" && (
-        <FlatList
-          data={songs}
-          keyExtractor={(item, index) => index.toString()}
-          numColumns={2} // Two columns
-          renderItem={({ item }) => (
-            <View style={styles.songCard}>
-              <Image source={item.cover} style={styles.songCover} />
-              <Text style={styles.songName}>{item.name}</Text>
-              <Text style={styles.songArtist}>{item.artist}</Text>
-              <Text style={styles.songDate}>{item.date}</Text>
-            </View>
-          )}
-          contentContainerStyle={styles.songList}
-        />
-      )}
-
-      {selectedTab === "reviews" && (
-        <View style={styles.reviewsSection}>
-          <Text style={{ color: "#fff" }}>Reviews content goes here.</Text>
-        </View>
-      )}
+      <MenuHeader profilePicture={profilePicture} />
+      <TabToggle activeTab={activeTab} onTabChange={setActiveTab} />
+      {activeTab === "songs" && <SongGrid songs={songs} />}
+      {activeTab === "reviews" && <ReviewSection />}
     </View>
   );
 };
 
+export default Menu;
+
+/* ----- Styles ----- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fcfcfc",
     padding: 20,
-  },
-  albumCover: {
-    width: "100%",
-    borderRadius: 10,
-    marginBottom: 10,
-    resizeMode: "contain",
   },
   tracklistTitle: {
     fontSize: 28,
@@ -157,6 +182,27 @@ const styles = StyleSheet.create({
     color: "black",
     textAlign: "center",
     marginBottom: 20,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  profileIconButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#ddd",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  profileIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   tabRow: {
     flexDirection: "row",
@@ -185,13 +231,13 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   songCard: {
-    width: "48%", // 48% to allow spacing between items
+    width: "48%",
     backgroundColor: "#222",
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
     marginBottom: 15,
-    marginHorizontal: "1%", // Add spacing between columns
+    marginHorizontal: "1%",
   },
   songCover: {
     width: 150,
@@ -218,29 +264,4 @@ const styles = StyleSheet.create({
     backgroundColor: "#222",
     borderRadius: 10,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-
-  profileIconButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#ddd",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  profileIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
 });
-
-export default Menu;
