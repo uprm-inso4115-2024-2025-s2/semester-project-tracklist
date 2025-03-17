@@ -1,7 +1,8 @@
-
 import { fetchToken } from "../spotify/auth";
 const SEARCH_URL = "https://api.spotify.com/v1/search";
 const SPOTIFY_API_URL = "https://api.spotify.com/v1/tracks";
+
+const SPOTIFY_GET_IDS = "https://api.spotify.com/v1/audio-features?ids="
 
 export async function getTrackById(trackId: string) {
   try {
@@ -10,7 +11,6 @@ export async function getTrackById(trackId: string) {
       headers: { Authorization: `Bearer ${token}` },
     });
     
-
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -45,4 +45,23 @@ export async function getTrackById(trackId: string) {
       stringArray: ["Error fetching track data."]
     };
   }
+}
+
+export async function GetSeveralTracksAudioFeatures(Ids: Array<string>) {
+    try {
+        const token = await fetchToken(); // Retrieve access token
+        const trackIds: string = Ids.join(",");
+        const response = await fetch(`${SPOTIFY_GET_IDS}${trackIds}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.audio_features;
+    } catch {
+        throw new Error("");
+    }
 }
