@@ -1,13 +1,18 @@
 import { fetchToken } from "../spotify/auth";
-const SEARCH_URL = "https://api.spotify.com/v1/search";
-const SPOTIFY_API_URL = "https://api.spotify.com/v1/tracks";
 
-const SPOTIFY_GET_IDS = "https://api.spotify.com/v1/audio-features?ids="
+const SPOTIFY_TRACKS = "https://api.spotify.com/v1/tracks";
+const SPOTIFY_AUDIO_FEATURES = "https://api.spotify.com/v1/audio-features?ids="
+const SPOTIFY_RECOMENDATIONS = "'https://api.spotify.com/v1/recommendations?"
 
+/**
+ * Fetches track details from Spotify by track ID.
+ * @param {string} trackId - The Spotify ID of the track.
+ * @returns {Promise<Object>} - The track data.
+ */
 export async function getTrackById(trackId: string) {
   try {
     const token = await fetchToken(); // Retrieve access token
-    const response = await fetch(`${SPOTIFY_API_URL}/${trackId}`, {
+    const response = await fetch(`${SPOTIFY_TRACKS}/${trackId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     
@@ -51,7 +56,7 @@ export async function GetSeveralTracksAudioFeatures(Ids: Array<string>) {
     try {
         const token = await fetchToken(); // Retrieve access token
         const trackIds: string = Ids.join(",");
-        const response = await fetch(`${SPOTIFY_GET_IDS}${trackIds}`, {
+        const response = await fetch(`${SPOTIFY_AUDIO_FEATURES}${trackIds}`, {
         headers: { Authorization: `Bearer ${token}` },
         });
         
@@ -66,8 +71,6 @@ export async function GetSeveralTracksAudioFeatures(Ids: Array<string>) {
     }
 }
 
-const SPOTIFY_API_RECOMENDATIONS = "'https://api.spotify.com/v1/recommendations?"
-
 export async function GetRecommendations(seed_artists: Array<string>, seed_genres: Array<string>, seed_tracks: Array<string>) {
     try {
       const token = await fetchToken(); // Retrieve access token
@@ -77,7 +80,7 @@ export async function GetRecommendations(seed_artists: Array<string>, seed_genre
       const genres_str: string = seed_genres.join(",");
       const tracks_str: string = seed_tracks.join(",");
 
-      const response = await fetch(`${SPOTIFY_API_RECOMENDATIONS}seed_artists=${artists_str}&seed_genres=${genres_str}&seed_tracks=${tracks_str}`, {
+      const response = await fetch(`${SPOTIFY_RECOMENDATIONS}seed_artists=${artists_str}&seed_genres=${genres_str}&seed_tracks=${tracks_str}`, {
       headers: { Authorization: `Bearer ${token}` },
       });
       
