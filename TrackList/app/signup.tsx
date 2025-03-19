@@ -11,14 +11,11 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
-  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import CustomButton from "../components/CustomButton";
 import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
-import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 WebBrowser.maybeCompleteAuthSession();
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
@@ -38,12 +35,11 @@ export default function SignUp() {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
-  
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-  
-      // Save additional user data in Firestore
+
       await setDoc(doc(db, "users", user.uid), {
         fullName,
         email,
@@ -51,7 +47,7 @@ export default function SignUp() {
         phoneNumber,
         createdAt: new Date(),
       });
-  
+
       Alert.alert("Success", "Account created successfully!");
       router.push("/menu");
     } catch (error) {
@@ -60,91 +56,114 @@ export default function SignUp() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Text style={styles.title}>Sign up</Text>
-          <Text style={styles.subtitle}>Create an account to continue!</Text>
-
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Full Name"
-            value={fullName}
-            onChangeText={setFullName}
-          />
-
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-
-          <Text style={styles.label}>Date of Birth</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="DD/MM/YYYY"
-            keyboardType="numeric"
-            value={dateOfBirth}
-            onChangeText={setDateOfBirth}
-          />
-
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="(XXX) XXX-XXXX"
-            keyboardType="phone-pad"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-          />
-
-          <Text style={styles.label}>Set Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="*******"
-              secureTextEntry={!passwordVisible}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity
-              onPress={() => setPasswordVisible(!passwordVisible)}
-            >
-              <Ionicons
-                name={passwordVisible ? "eye" : "eye-off"}
-                size={24}
-                color="gray"
-              />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <CustomButton text="Register" onPress={handleRegister} />
-          </View>
-
-          <Text style={styles.footerText}>
-            Already have an account?{" "}
-            <Text
-              style={styles.loginLink}
-              onPress={() => router.replace("/signin")}
-            >
-              Login
-            </Text>
-          </Text>
-        </ScrollView>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+    <View style={{ flex: 1 }}>
+      {Platform.OS !== "web" ? (
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            {renderForm({
+              fullName, setFullName,
+              email, setEmail,
+              dateOfBirth, setDateOfBirth,
+              phoneNumber, setPhoneNumber,
+              password, setPassword,
+              passwordVisible, setPasswordVisible,
+              handleRegister, router
+            })}
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      ) : (
+        renderForm({
+          fullName, setFullName,
+          email, setEmail,
+          dateOfBirth, setDateOfBirth,
+          phoneNumber, setPhoneNumber,
+          password, setPassword,
+          passwordVisible, setPasswordVisible,
+          handleRegister, router
+        })
+      )}
+    </View>
   );
 }
+
+const renderForm = ({
+  fullName, setFullName,
+  email, setEmail,
+  dateOfBirth, setDateOfBirth,
+  phoneNumber, setPhoneNumber,
+  password, setPassword,
+  passwordVisible, setPasswordVisible,
+  handleRegister, router
+}) => (
+  <ScrollView
+    contentContainerStyle={styles.container}
+    keyboardShouldPersistTaps="always"
+  >
+    <Text style={styles.title}>Sign up</Text>
+    <Text style={styles.subtitle}>Create an account to continue!</Text>
+
+    <Text style={styles.label}>Full Name</Text>
+    <TextInput
+      style={styles.input}
+      placeholder="Full Name"
+      value={fullName}
+      onChangeText={setFullName}
+    />
+
+    <Text style={styles.label}>Email</Text>
+    <TextInput
+      style={styles.input}
+      placeholder="Email"
+      keyboardType="email-address"
+      value={email}
+      onChangeText={setEmail}
+    />
+
+    <Text style={styles.label}>Date of Birth</Text>
+    <TextInput
+      style={styles.input}
+      placeholder="DD/MM/YYYY"
+      keyboardType="numeric"
+      value={dateOfBirth}
+      onChangeText={setDateOfBirth}
+    />
+
+    <Text style={styles.label}>Phone Number</Text>
+    <TextInput
+      style={styles.input}
+      placeholder="(XXX) XXX-XXXX"
+      keyboardType="phone-pad"
+      value={phoneNumber}
+      onChangeText={setPhoneNumber}
+    />
+
+    <Text style={styles.label}>Set Password</Text>
+    <View style={styles.passwordContainer}>
+      <TextInput
+        style={styles.passwordInput}
+        placeholder="*******"
+        secureTextEntry={!passwordVisible}
+        value={password}
+        onChangeText={setPassword}
+      />
+      <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+        <Ionicons name={passwordVisible ? "eye" : "eye-off"} size={24} color="gray" />
+      </TouchableOpacity>
+    </View>
+
+    <View style={styles.buttonContainer}>
+      <CustomButton text="Register" onPress={handleRegister} />
+    </View>
+
+    <Text style={styles.footerText}>
+      Already have an account?{" "}
+      <Text style={styles.loginLink} onPress={() => router.replace("/signin")}>
+        Login
+      </Text>
+    </Text>
+  </ScrollView>
+);
+
 
 const styles = StyleSheet.create({
   container: {
