@@ -15,6 +15,9 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import { useNavigation } from '@react-navigation/native';
+import { router } from 'expo-router';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebaseConfig'; // Adjust the path as needed
 
 // Validation schema
 const validationSchema = Yup.object().shape({
@@ -34,15 +37,17 @@ const SignInScreen = () => {
         resolver: yupResolver(validationSchema),
     });
 
-    const onSubmit = (data) => {
-        setLoading(true); // Show loading state
-        console.log('Login Data:', data);
-
-        // Simulate a login delay
-        setTimeout(() => {
+    const onSubmit = async (data: { email: string; password: string }) => {
+        setLoading(true);
+        try {
+            await signInWithEmailAndPassword(auth, data.email, data.password);
+            console.log('Login Data:', data);
+            router.replace('search');
+        } catch (error) {
+            console.error('Firebase login error:', error);
+        } finally {
             setLoading(false);
-            navigation.navigate('Home'); // Redirect to Home Screen
-        }, 2000);
+        }
     };
 
     return (
@@ -92,7 +97,7 @@ const SignInScreen = () => {
                     )}
                 />
 
-                {/* Submit Button */}
+                {/* Login Button */}
                 <TouchableOpacity 
                     style={[styles.button, loading && styles.buttonDisabled]} 
                     onPress={handleSubmit(onSubmit)} 
@@ -104,12 +109,19 @@ const SignInScreen = () => {
                         <Text style={styles.buttonText}>Login</Text>
                     )}
                 </TouchableOpacity>
+
+                {/* Guest Login Button */}
+                <TouchableOpacity 
+                    style={[styles.button, styles.guestButton]} 
+                    onPress={() => router.replace('search')}
+                >
+                    <Text style={styles.buttonText}>Login without Account</Text>
+                </TouchableOpacity>
             </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
     );
 };
 
-// Vanilla CSS using React Native's StyleSheet
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -144,6 +156,10 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         width: '100%',
         alignItems: 'center',
+        marginTop: 10,
+    },
+    guestButton: {
+        backgroundColor: '#28a745',
     },
     buttonDisabled: {
         backgroundColor: '#ccc',
