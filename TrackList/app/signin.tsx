@@ -29,87 +29,94 @@ const validationSchema = Yup.object().shape({
 const SignInScreen = () => {
     const navigation = useNavigation();
     const [loading, setLoading] = useState(false);
-
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(validationSchema),
     });
 
     const onSubmit = (data) => {
-        setLoading(true); // Show loading state
+        setLoading(true);
         console.log('Login Data:', data);
 
-        // Simulate a login delay
         setTimeout(() => {
             setLoading(false);
-            navigation.navigate('Home'); // Redirect to Home Screen
+            navigation.navigate('Home');
         }, 2000);
     };
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <KeyboardAvoidingView 
-                behavior={Platform.OS === "ios" ? "padding" : "height"} 
-                style={styles.container}
-            >
-                <Text style={styles.title}>Sign In</Text>
-
-                {/* Email Input */}
-                <Controller
-                    control={control}
-                    name="email"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                        <>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Email"
-                                onBlur={onBlur}
-                                onChangeText={onChange}
-                                value={value}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                            />
-                            {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
-                        </>
-                    )}
-                />
-
-                {/* Password Input */}
-                <Controller
-                    control={control}
-                    name="password"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                        <>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Password"
-                                secureTextEntry
-                                onBlur={onBlur}
-                                onChangeText={onChange}
-                                value={value}
-                            />
-                            {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
-                        </>
-                    )}
-                />
-
-                {/* Submit Button */}
-                <TouchableOpacity 
-                    style={[styles.button, loading && styles.buttonDisabled]} 
-                    onPress={handleSubmit(onSubmit)} 
-                    disabled={loading}
-                >
-                    {loading ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                        <Text style={styles.buttonText}>Login</Text>
-                    )}
-                </TouchableOpacity>
-            </KeyboardAvoidingView>
-        </TouchableWithoutFeedback>
+        <View style={{ flex: 1 }}>
+            {Platform.OS !== "web" ? (
+                <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                        {renderForm({ control, errors, handleSubmit, onSubmit, loading })}
+                    </TouchableWithoutFeedback>
+                </KeyboardAvoidingView>
+            ) : (
+                renderForm({ control, errors, handleSubmit, onSubmit, loading })
+            )}
+        </View>
     );
 };
 
-// Vanilla CSS using React Native's StyleSheet
+const renderForm = ({ control, errors, handleSubmit, onSubmit, loading }) => (
+    <View style={styles.container}>
+        <Text style={styles.title}>Sign In</Text>
+
+        {/* Email Input */}
+        <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+                <>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Email"
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                        value={value}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
+                    {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+                </>
+            )}
+        />
+
+        {/* Password Input */}
+        <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+                <>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Password"
+                        secureTextEntry
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                        value={value}
+                    />
+                    {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+                </>
+            )}
+        />
+
+        {/* Submit Button */}
+        <TouchableOpacity 
+            style={[styles.button, loading && styles.buttonDisabled]} 
+            onPress={handleSubmit(onSubmit)} 
+            disabled={loading}
+        >
+            {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+            ) : (
+                <Text style={styles.buttonText}>Login</Text>
+            )}
+        </TouchableOpacity>
+    </View>
+);
+
+// Styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
