@@ -15,6 +15,8 @@ const Menu: React.FC = () => {
   const [songs, setSongs] = useState<Song[]>([]);
   const navigation = useNavigation();
   const colorScheme = useColorScheme();
+  const router = useRouter();
+
 
   // Hide header so that no back button interferes with the bottom nav bar.
   useEffect(() => {
@@ -49,6 +51,13 @@ const Menu: React.FC = () => {
     });
   };
 
+  const handleSongPress = (song: Song) => {
+    router.push(`/song_detail?name=${song.name}&artist=${song.artist}`);
+  }
+  
+  
+
+
   const contentTranslate = contentAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -100] // Adjust this value as needed for your desired effect
@@ -78,19 +87,23 @@ const Menu: React.FC = () => {
       <Animated.View style={{ transform: [{ translateX: contentTranslate }] }}>
         {selectedTab === 'songs' && (
           <FlatList
-            data={songs}
-            keyExtractor={(item, index) => index.toString()}
-            numColumns={2}
-            renderItem={({ item }) => (
-              <View style={styles.songCard}>
-                <Image source={item.cover} style={styles.songCover} />
-                <Text style={styles.songName}>{item.name}</Text>
-                <Text style={styles.songArtist}>{item.artist}</Text>
-                <Text style={styles.songDate}>{item.date}</Text>
-              </View>
-            )}
-            contentContainerStyle={styles.songList}
-          />
+          data={songs}
+          keyExtractor={(item, index) => index.toString()}
+          numColumns={2}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.songCard}
+              onPress={() => handleSongPress(item)}
+            >
+              <Image source={item.cover} style={styles.songCover} />
+              <Text style={styles.songName}>{item.name}</Text>
+              <Text style={styles.songArtist}>{item.artist}</Text>
+              <Text style={styles.songDate}>{item.date}</Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.songList}
+        />
+        
         )}
 
         {selectedTab === 'reviews' && (
@@ -180,3 +193,5 @@ const styles = StyleSheet.create({
 });
 
 export default Menu;
+
+
