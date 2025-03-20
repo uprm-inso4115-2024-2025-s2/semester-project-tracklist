@@ -17,6 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 interface UserData {
   fullName: string;
   email: string;
+  username: string;
   bio: string;
   profilePicture: string;
 }
@@ -24,8 +25,10 @@ interface UserData {
 export default function Profile() {
   const router = useRouter();
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [username, setUsername] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const [profilePicture, setProfilePicture] = useState<string>("");
+  const [isEditingUsername, setIsEditingUsername] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -38,6 +41,7 @@ export default function Profile() {
           if (userSnap.exists()) {
             const data = userSnap.data() as UserData;
             setUserData(data);
+            setUsername(data.username || "NewUser");
             setBio(data.bio || "Hello! I'm new here.");
             setProfilePicture(
               data.profilePicture || "https://example.com/default-avatar.png"
@@ -54,15 +58,22 @@ export default function Profile() {
 
   const handleUpdateProfile = async () => {
     try {
+      if (!username.trim()) {
+        Alert.alert("Error", "Username cannot be empty.");
+        return;
+      }
+
       const user = auth.currentUser;
       if (user) {
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, {
+          username,
           bio,
           profilePicture,
           updatedAt: new Date(),
         });
 
+        setIsEditingUsername(false); // Exit edit mode after saving
         Alert.alert("Success", "Profile updated!");
       }
     } catch (error) {
@@ -88,18 +99,6 @@ export default function Profile() {
 
       if (fileSize > 2) {
         Alert.alert("File too large", "Please select an image under 2MB.");
-        return;
-      }
-
-      if (
-        !selectedImageUri.endsWith(".png") &&
-        !selectedImageUri.endsWith(".jpg") &&
-        !selectedImageUri.endsWith(".jpeg")
-      ) {
-        Alert.alert(
-          "Invalid file type",
-          "Only PNG and JPEG files are allowed."
-        );
         return;
       }
 
@@ -133,6 +132,32 @@ export default function Profile() {
       <Text style={styles.name}>{userData.fullName}</Text>
       <Text style={styles.email}>{userData.email}</Text>
 
+      <Text style={styles.label}>Username</Text>
+      {isEditingUsername ? (
+        <TextInput
+          style={styles.input}
+          value={username}
+          onChangeText={setUsername}
+        />
+      ) : (
+        <Text style={styles.username}>{username}</Text>
+      )}
+
+      <TouchableOpacity
+        style={styles.editButton}
+        onPress={() => {
+          if (isEditingUsername) {
+            handleUpdateProfile();
+          } else {
+            setIsEditingUsername(true);
+          }
+        }}
+      >
+        <Text style={styles.editButtonText}>
+          {isEditingUsername ? "Save" : "Edit"}
+        </Text>
+      </TouchableOpacity>
+
       <Text style={styles.label}>Bio</Text>
       <TextInput
         style={styles.bioInput}
@@ -140,13 +165,6 @@ export default function Profile() {
         onChangeText={setBio}
         multiline
       />
-
-      <TouchableOpacity
-        style={styles.updateButton}
-        onPress={handleUpdateProfile}
-      >
-        <Text style={styles.updateButtonText}>Update Profile</Text>
-      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.menuButton}
@@ -163,32 +181,87 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#121212",
   },
-  profileImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 20 },
-  name: { fontSize: 22, fontWeight: "bold" },
-  email: { fontSize: 16, color: "gray", marginBottom: 10 },
-  label: { fontSize: 16, fontWeight: "500", marginTop: 20 },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: "#00FF99",
+    marginBottom: 20,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginBottom: 5,
+  },
+  email: {
+    fontSize: 14,
+    color: "#AAAAAA",
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#FFFFFF",
+    alignSelf: "flex-start",
+    marginLeft: "10%",
+    marginTop: 10,
+  },
+  username: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    backgroundColor: "#1E1E1E",
+    padding: 10,
+    borderRadius: 8,
+    width: "90%",
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#333333",
+    backgroundColor: "#1E1E1E",
+    padding: 10,
+    borderRadius: 8,
+    width: "90%",
+    color: "#FFFFFF",
+    height: 40,
+  },
   bioInput: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#333333",
+    backgroundColor: "#1E1E1E",
     padding: 10,
     borderRadius: 8,
-    width: "80%",
+    width: "90%",
+    color: "#FFFFFF",
     height: 80,
   },
-  updateButton: {
-    marginTop: 20,
-    backgroundColor: "#28a745",
-    padding: 10,
-    borderRadius: 8,
-  },
-  updateButtonText: { color: "#fff", fontWeight: "bold" },
-  menuButton: {
+  editButton: {
     marginTop: 10,
-    backgroundColor: "#007bff",
+    backgroundColor: "#00FF99",
     padding: 10,
     borderRadius: 8,
+    width: "40%",
+    alignItems: "center",
   },
-  menuButtonText: { color: "#fff", fontWeight: "bold" },
+  editButtonText: {
+    color: "#000000",
+    fontWeight: "bold",
+  },
+  menuButton: {
+    marginTop: 20,
+    backgroundColor: "#444444",
+    padding: 10,
+    borderRadius: 8,
+    width: "90%",
+    alignItems: "center",
+  },
+  menuButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+  },
 });
