@@ -16,9 +16,13 @@ import * as ImagePicker from "expo-image-picker";
 // Define user data type
 interface UserData {
   fullName: string;
+  username: string;
   email: string;
   bio: string;
   profilePicture: string;
+  followers: number;
+  following: number;
+  reviews: number;
 }
 
 export default function Profile() {
@@ -71,69 +75,38 @@ export default function Profile() {
     }
   };
 
-  const handlePickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const selectedImageUri = result.assets[0].uri;
-
-      const response = await fetch(selectedImageUri);
-      const blob = await response.blob();
-      const fileSize = blob.size / (1024 * 1024); // Convert bytes to MB
-
-      if (fileSize > 2) {
-        Alert.alert("File too large", "Please select an image under 2MB.");
-        return;
-      }
-
-      if (
-        !selectedImageUri.endsWith(".png") &&
-        !selectedImageUri.endsWith(".jpg") &&
-        !selectedImageUri.endsWith(".jpeg")
-      ) {
-        Alert.alert(
-          "Invalid file type",
-          "Only PNG and JPEG files are allowed."
-        );
-        return;
-      }
-
-      setProfilePicture(selectedImageUri);
-
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const userRef = doc(db, "users", user.uid);
-          await updateDoc(userRef, {
-            profilePicture: selectedImageUri,
-            updatedAt: new Date(),
-          });
-
-          Alert.alert("Success", "Profile picture updated!");
-        }
-      } catch (error) {
-        Alert.alert("Error", "Failed to update profile picture.");
-        console.error("Profile update error:", error);
-      }
-    }
-  };
-
   if (!userData) return <Text>Loading...</Text>;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.searchTitle}>Profile</Text>
-      <TouchableOpacity onPress={handlePickImage}>
-        <Image source={{ uri: profilePicture }} style={styles.profileImage} />
-      </TouchableOpacity>
-      <Text style={styles.name}>{userData.fullName}</Text>
-      <Text style={styles.email}>{userData.email}</Text>
+      {/* Username */}
+      <Text style={styles.username}>@{userData.username}</Text>
 
+      {/* Header Section: Profile Image & Stats */}
+      <View style={styles.header}>
+        {/* Profile Image */}
+        <TouchableOpacity onPress={handleUpdateProfile}>
+          <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+        </TouchableOpacity>
+
+        {/* Follower Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>{userData.followers}</Text>
+            <Text style={styles.statLabel}>followers</Text>
+          </View>
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>{userData.following}</Text>
+            <Text style={styles.statLabel}>following</Text>
+          </View>
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>{userData.reviews}</Text>
+            <Text style={styles.statLabel}>reviews</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Bio Section */}
       <Text style={styles.label}>Bio</Text>
       <TextInput
         style={styles.bioInput}
@@ -142,6 +115,7 @@ export default function Profile() {
         multiline
       />
 
+      {/* Update Profile Button */}
       <TouchableOpacity
         style={styles.updateButton}
         onPress={handleUpdateProfile}
@@ -149,6 +123,7 @@ export default function Profile() {
         <Text style={styles.updateButtonText}>Update Profile</Text>
       </TouchableOpacity>
 
+      {/* Back to Menu Button */}
       <TouchableOpacity
         style={styles.menuButton}
         onPress={() => router.replace("/menu")}
@@ -166,10 +141,45 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#fff",
   },
-  profileImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 20 },
-  name: { fontSize: 22, fontWeight: "bold" },
-  email: { fontSize: 16, color: "gray", marginBottom: 10 },
-  label: { fontSize: 16, fontWeight: "500", marginTop: 20 },
+  username: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingHorizontal: 20,
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#ddd",
+  },
+  statsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "60%",
+  },
+  stat: {
+    alignItems: "center",
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  statLabel: {
+    fontSize: 14,
+    color: "gray",
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginTop: 20,
+  },
   bioInput: {
     borderWidth: 1,
     borderColor: "#ddd",
@@ -192,11 +202,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   menuButtonText: { color: "#fff", fontWeight: "bold" },
-  searchTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "black",
-    textAlign: "center",
-    marginTop: 55,
-  },
 });
+

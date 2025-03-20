@@ -2,6 +2,7 @@ import { useNavigation, useRouter } from 'expo-router';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, Animated } from 'react-native';
 import { useColorScheme } from '@/components/useColorScheme';
+const bellIcon = require('../../assets/images/Bell.png');
 
 interface Song {
   cover: any;
@@ -14,9 +15,9 @@ const Menu: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<'songs' | 'reviews'>('songs');
   const [songs, setSongs] = useState<Song[]>([]);
   const navigation = useNavigation();
+  const router = useRouter(); // Added this for navigation
   const colorScheme = useColorScheme();
 
-  // Hide header so that no back button interferes with the bottom nav bar.
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
@@ -28,18 +29,14 @@ const Menu: React.FC = () => {
       { cover: require('../../assets/images/jhayco.png'), name: 'Muri', artist: 'JHAYCO', date: '2024' },
       { cover: require('../../assets/images/jhayco.png'), name: '100 Gramos', artist: 'JHAYCO', date: '2024' },
     ];
-    // Repeat songs to fill more rows
     const repeatedSongs = Array(3).fill(mockSongs).flat();
     setSongs(repeatedSongs);
   }, []);
 
-  // Animate the content switch between Songs and Reviews (if desired)
   const contentAnimation = useRef(new Animated.Value(0)).current;
 
   const handleTabPress = (newTab: 'songs' | 'reviews') => {
     if (newTab === selectedTab) return;
-
-    // Animate content transition – for example, a slight horizontal slide
     Animated.timing(contentAnimation, {
       toValue: newTab === 'songs' ? 0 : 1,
       duration: 200,
@@ -51,14 +48,21 @@ const Menu: React.FC = () => {
 
   const contentTranslate = contentAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -100] // Adjust this value as needed for your desired effect
+    outputRange: [0, -100]
   });
 
   return (
     <View style={styles.container}>
-
-
-      <Text style={styles.tracklistTitle}>TrackList</Text>
+      <View style={styles.header}>
+        <Text style={styles.tracklistTitle}>TrackList</Text>
+        <TouchableOpacity 
+          style={styles.notificationTab} 
+          onPress={() => router.push("/notification")} // Navigate to notification tab
+        >
+          <Image source={bellIcon} style={styles.bellIcon} />
+          <Text style={styles.notificationCount}>3</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.tabRow}>
         <TouchableOpacity
@@ -109,13 +113,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#fcfcfc',
     padding: 20,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   tracklistTitle: {
     fontSize: 28,
     fontWeight: 'bold',
     color: 'black',
-    textAlign: 'center',
-    marginTop: 35,  
-    marginBottom: 20,
+  },
+  notificationTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  bellIcon: {
+    width: 30,
+    height: 30,
+  },
+  notificationCount: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: 'red',
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   tabRow: {
     flexDirection: 'row',

@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 const userIcon = require("../assets/images/user-icon.png");
+const bellIcon = require("../assets/images/Bell.png"); // Added bell icon
 import {
   View,
   Text,
@@ -79,15 +80,27 @@ const Menu: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.tracklistTitle}>Tracklist</Text>
-        <TouchableOpacity
-          style={styles.profileIconButton}
-          onPress={() => router.replace("/profile")}
-        >
-          <Image
-            source={profilePicture ? { uri: profilePicture } : userIcon}
-            style={styles.profileIcon}
-          />
-        </TouchableOpacity>
+
+        <View style={styles.iconContainer}>
+          {/* Bell Icon with navigation */}
+          <TouchableOpacity 
+            style={styles.bellIconButton} 
+            onPress={() => router.push("/notification")} // Navigate to notification tab
+          >
+            <Image source={bellIcon} style={styles.bellIcon} />
+          </TouchableOpacity>
+
+          {/* Profile Icon */}
+          <TouchableOpacity
+            style={styles.profileIconButton}
+            onPress={() => router.replace("/profile")}
+          >
+            <Image
+              source={profilePicture ? { uri: profilePicture } : userIcon}
+              style={styles.profileIcon}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.tabRow}>
@@ -218,6 +231,18 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 20,
     marginBottom: 10,
+  },
+  iconContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  bellIconButton: {
+    marginRight: 15,
+  },
+  bellIcon: {
+    width: 30,
+    height: 30,
+    tintColor: "#FF8001",
   },
   profileIconButton: {
     width: 50,
