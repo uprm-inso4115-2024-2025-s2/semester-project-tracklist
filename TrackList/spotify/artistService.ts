@@ -1,6 +1,6 @@
 import { fetchToken } from "../spotify/auth";
 
-const ARTISTS_API_URL = "https://api.spotify.com/v1/artists";
+const ARTISTS_API_URL = process.env.REACT_APP_SPOTIFY_ARTISTS; //"https://api.spotify.com/v1/artists";
 
 /**
  * Fetches related artists from Spotify by artist ID.

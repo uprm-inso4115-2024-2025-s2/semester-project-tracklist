@@ -1,8 +1,8 @@
 import { fetchToken } from "../spotify/auth";
 
-const SPOTIFY_TRACKS = "https://api.spotify.com/v1/tracks";
-const SPOTIFY_AUDIO_FEATURES = "https://api.spotify.com/v1/audio-features?ids="
-const SPOTIFY_RECOMENDATIONS = "'https://api.spotify.com/v1/recommendations?"
+const SPOTIFY_TRACKS = process.env.REACT_APP_SPOTIFY_TRACKS; //"https://api.spotify.com/v1/tracks";
+const SPOTIFY_AUDIO_FEATURES = process.env.REACT_APP_SPOTIFY_AUDIO_FEATURES; //"https://api.spotify.com/v1/audio-features?ids="
+const SPOTIFY_RECOMENDATIONS = process.env.REACT_APP_SPOTIFY_RECOMENDATIONS; // "https://api.spotify.com/v1/recommendations?"
 
 /**
  * Fetches track details from Spotify by track ID.
