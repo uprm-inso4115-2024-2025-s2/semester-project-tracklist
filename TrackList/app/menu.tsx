@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
-const userIcon = require("../assets/images/user-icon.png");
 import {
   View,
   Text,
@@ -27,24 +26,31 @@ const Menu: React.FC = () => {
   const navigation = useNavigation();
   const router = useRouter();
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [currentRole, setCurrentRole] = useState<string>("Regular");
+  const [roleLoaded, setRoleLoaded] = useState<boolean>(false);
+  const userIcon = require("../assets/images/user-icon.png");
 
   useEffect(() => {
     navigation.setOptions({ title: "" });
   }, [navigation]);
 
   useEffect(() => {
-    const fetchProfilePicture = async () => {
+    const fetchProfilePictureAndRole = async () => {
       const user = auth.currentUser;
       if (user) {
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-          setProfilePicture(userSnap.data().profilePicture || null);
+          const data = userSnap.data();
+          setProfilePicture(data.profilePicture || null);
+          setCurrentRole(data.role || "Regular");
         }
       }
+      setRoleLoaded(true);
     };
 
-    fetchProfilePicture();
+    fetchProfilePictureAndRole();
+
     const mockSongs: Song[] = [
       {
         cover: require("../assets/images/jhayco.png"),
@@ -71,8 +77,6 @@ const Menu: React.FC = () => {
         date: "2024",
       },
     ];
-
-    // Repeat songs to fill more rows
     const repeatedSongs = Array(3).fill(mockSongs).flat();
     setSongs(repeatedSongs);
   }, []);
@@ -91,6 +95,15 @@ const Menu: React.FC = () => {
           />
         </TouchableOpacity>
       </View>
+
+      {roleLoaded && currentRole === "Admin" && (
+        <TouchableOpacity
+          style={styles.adminButton}
+          onPress={() => router.push("/admin")}
+        >
+          <Text style={styles.adminButtonText}>Go to Admin Dashboard</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.tabRow}>
         <TouchableOpacity
@@ -117,7 +130,7 @@ const Menu: React.FC = () => {
         <FlatList
           data={songs}
           keyExtractor={(item, index) => index.toString()}
-          numColumns={2} // Two columns
+          numColumns={2}
           renderItem={({ item }) => (
             <View style={styles.songCard}>
               <Image source={item.cover} style={styles.songCover} />
@@ -145,11 +158,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fcfcfc",
     padding: 20,
   },
-  albumCover: {
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     width: "100%",
-    borderRadius: 10,
+    paddingHorizontal: 20,
     marginBottom: 10,
-    resizeMode: "contain",
   },
   tracklistTitle: {
     fontSize: 28,
@@ -157,6 +172,30 @@ const styles = StyleSheet.create({
     color: "black",
     textAlign: "center",
     marginBottom: 20,
+  },
+  profileIconButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#ddd",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  profileIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  adminButton: {
+    backgroundColor: "red",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  adminButtonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
   },
   tabRow: {
     flexDirection: "row",
@@ -185,13 +224,13 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   songCard: {
-    width: "48%", // 48% to allow spacing between items
+    width: "48%",
     backgroundColor: "#222",
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
     marginBottom: 15,
-    marginHorizontal: "1%", // Add spacing between columns
+    marginHorizontal: "1%",
   },
   songCover: {
     width: 150,
@@ -217,29 +256,6 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#222",
     borderRadius: 10,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-
-  profileIconButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#ddd",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  profileIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
   },
 });
 

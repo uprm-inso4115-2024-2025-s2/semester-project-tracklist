@@ -50,6 +50,7 @@ export default function SignUp() {
         dateOfBirth,
         phoneNumber,
         createdAt: new Date(),
+        role: "Regular",
       });
   
       Alert.alert("Success", "Account created successfully!");
