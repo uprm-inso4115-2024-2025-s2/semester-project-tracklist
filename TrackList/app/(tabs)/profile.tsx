@@ -94,7 +94,12 @@ export default function Profile() {
     }
   };
 
-  if (!userData) return <Text>Loading...</Text>;
+  if (!userData)
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading... No user data...</Text>
+      </View>
+    );
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
