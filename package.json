@@ -18,10 +18,10 @@
   },
   "homepage": "https://github.com/uprm-inso4115-2024-2025-s2/semester-project-tracklist#readme",
   "dependencies": {
-    "expo": "^52.0.33"
+    "expo": "^52.0.40"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
-    "@types/react": "~18.3.12"
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3"
   }
 }
