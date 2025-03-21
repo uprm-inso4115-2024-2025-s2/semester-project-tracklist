@@ -1,5 +1,6 @@
 import { fetchToken } from "../spotify/auth";
 
+const TRACK_API_URL = "https://api.spotify.com/v1/audio-features";
 const SPOTIFY_TRACKS = process.env.REACT_APP_SPOTIFY_TRACKS; //"https://api.spotify.com/v1/tracks";
 const SPOTIFY_AUDIO_FEATURES = process.env.REACT_APP_SPOTIFY_AUDIO_FEATURES; //"https://api.spotify.com/v1/audio-features?ids="
 const SPOTIFY_RECOMENDATIONS = process.env.REACT_APP_SPOTIFY_RECOMENDATIONS; // "https://api.spotify.com/v1/recommendations?"
@@ -120,5 +121,44 @@ export async function GetRecommendations(seed_artists: Array<string>, seed_genre
       return data.tracks;
   } catch {
       throw new Error("");
+  }
+}
+
+export async function getTrackAudioFeatures(trackId: string): Promise<Object | null> {
+  if (!trackId) {
+    console.error("Error: Track ID is required.");
+    return null;
+  }
+
+  try {
+    const token = await fetchToken(); // Retrieve access token
+    const response = await fetch(`${TRACK_API_URL}/${trackId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.status === 400) {
+      console.error("Error: Invalid Track ID.");
+      return null;
+    }
+
+    if (response.status === 401) {
+      console.error("Error: Unauthorized. Check API credentials.");
+      return null;
+    }
+
+    if (response.status === 429) {
+      console.error("Error: Rate limit exceeded. Try again later.");
+      return null;
+    }
+
+    if (!response.ok) {
+      console.error(`Error: Failed to fetch audio features (${response.statusText})`);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error fetching track audio features:", error.message);
+    return null;
   }
 }

@@ -115,3 +115,5 @@ export async function fetchSpotifyPlaylist(playlistId: string) {
       return null;
   }
 }
+
+export { getTrackAudioFeatures } from "./trackService";
