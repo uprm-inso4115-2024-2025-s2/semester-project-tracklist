@@ -27,8 +27,8 @@ interface UserData {
   followers?: number;
   following?: number;
   reviews?: number;
-  dateOfBirth?: string;
-  phoneNumber?: string;
+  dateOfBirth: string;
+  phoneNumber: string;
 }
 
 export default function Profile() {
@@ -119,11 +119,28 @@ export default function Profile() {
             <Text style={styles.name}>{userData.fullName}</Text>
             <Text style={styles.email}>{userData.email}</Text>
 
+            {/* Display Date of Birth */}
             <Text style={styles.label}>Date of Birth</Text>
-            <Text style={styles.infoText}>{userData.dateOfBirth || "Not provided"}</Text>
+            <Text style={styles.infoText}>
+              {userData.dateOfBirth || "Not provided"}
+            </Text>
 
+            {/* Display Phone Number */}
             <Text style={styles.label}>Phone Number</Text>
-            <Text style={styles.infoText}>{userData.phoneNumber || "Not provided"}</Text>
+            <Text style={styles.infoText}>
+              {userData.phoneNumber || "Not provided"}
+            </Text>
+
+            {/* Display Followers, Following, Reviews (if available) */}
+            {userData.followers !== undefined && (
+              <Text style={styles.infoText}>Followers: {userData.followers}</Text>
+            )}
+            {userData.following !== undefined && (
+              <Text style={styles.infoText}>Following: {userData.following}</Text>
+            )}
+            {userData.reviews !== undefined && (
+              <Text style={styles.infoText}>Reviews: {userData.reviews}</Text>
+            )}
 
             <Text style={styles.label}>Bio</Text>
             <TextInput
@@ -133,7 +150,10 @@ export default function Profile() {
               multiline
             />
 
-            <TouchableOpacity style={styles.updateButton} onPress={handleUpdateProfile}>
+            <TouchableOpacity
+              style={styles.updateButton}
+              onPress={handleUpdateProfile}
+            >
               <Text style={styles.updateButtonText}>Update Profile</Text>
             </TouchableOpacity>
 
