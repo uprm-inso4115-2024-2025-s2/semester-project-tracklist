@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 const userIcon = require("../assets/images/user-icon.png");
+const bellIcon = require("../assets/images/Bell.png");
 
 interface Song {
   cover: any;
@@ -13,94 +13,92 @@ interface Song {
   date: string;
 }
 
+type TabKey = "songs" | "reviews";
+
+const tabConfigs: { key: TabKey; label: string }[] = [
+  { key: "songs", label: "Songs" },
+  { key: "reviews", label: "Reviews" },
+];
+
 /* ----- Header Component ----- */
 const MenuHeader: React.FC<{ profilePicture: string | null }> = ({ profilePicture }) => {
   const router = useRouter();
   return (
     <View style={styles.header}>
       <Text style={styles.tracklistTitle}>Tracklist</Text>
-      <TouchableOpacity
-        style={styles.profileIconButton}
-        onPress={() => router.replace("/profile")}
-      >
-        <Image
-          source={profilePicture ? { uri: profilePicture } : userIcon}
-          style={styles.profileIcon}
-        />
-      </TouchableOpacity>
+      <View style={styles.iconContainer}>
+        <TouchableOpacity
+          style={styles.bellIconButton}
+          onPress={() => router.push("/notification")}
+        >
+          <Image source={bellIcon} style={styles.bellIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.profileIconButton}
+          onPress={() => router.replace("/profile")}
+        >
+          <Image
+            source={profilePicture ? { uri: profilePicture } : userIcon}
+            style={styles.profileIcon}
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 /* ----- Tab Toggle Component ----- */
-export type TabKey = "songs" | "reviews";
-
-interface TabConfig {
-  key: TabKey;
-  label: string;
-}
-
-const tabConfigs: TabConfig[] = [
-  { key: "songs", label: "Songs" },
-  { key: "reviews", label: "Reviews" },
-];
-
-interface TabToggleProps {
+const TabToggle: React.FC<{
   activeTab: TabKey;
   onTabChange: (tab: TabKey) => void;
-}
+}> = ({ activeTab, onTabChange }) => {
+  const router = useRouter();
 
-const TabToggle: React.FC<TabToggleProps> = ({ activeTab, onTabChange }) => {
   return (
     <View style={styles.tabRow}>
       {tabConfigs.map((tab) => (
         <TouchableOpacity
           key={tab.key}
-          style={[
-            styles.tabButton,
-            activeTab === tab.key && styles.activeTab,
-          ]}
+          style={[styles.tabButton, activeTab === tab.key && styles.activeTab]}
           onPress={() => onTabChange(tab.key)}
         >
           <Text style={styles.tabButtonText}>{tab.label}</Text>
         </TouchableOpacity>
       ))}
+      <TouchableOpacity
+        style={styles.tabButton}
+        onPress={() => router.push("/activity")}
+      >
+        <Text style={styles.tabButtonText}>Activity</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
-/* ----- SongGrid Component ----- */
-interface SongGridProps {
-  songs: Song[];
-}
+/* ----- Song Grid Component ----- */
+const SongGrid: React.FC<{ songs: Song[] }> = ({ songs }) => (
+  <FlatList
+    data={songs}
+    keyExtractor={(_, index) => index.toString()}
+    numColumns={2}
+    renderItem={({ item }) => (
+      <View style={styles.songCard}>
+        <Image source={item.cover} style={styles.songCover} />
+        <Text style={styles.songName}>{item.name}</Text>
+        <Text style={styles.songArtist}>{item.artist}</Text>
+        <Text style={styles.songDate}>{item.date}</Text>
+      </View>
+    )}
+    contentContainerStyle={styles.songList}
+  />
+);
 
-const SongGrid: React.FC<SongGridProps> = ({ songs }) => {
-  return (
-    <FlatList
-      data={songs}
-      keyExtractor={(item, index) => index.toString()}
-      numColumns={2}
-      renderItem={({ item }) => (
-        <View style={styles.songCard}>
-          <Image source={item.cover} style={styles.songCover} />
-          <Text style={styles.songName}>{item.name}</Text>
-          <Text style={styles.songArtist}>{item.artist}</Text>
-          <Text style={styles.songDate}>{item.date}</Text>
-        </View>
-      )}
-      contentContainerStyle={styles.songList}
-    />
-  );
-};
-
-/* ----- ReviewSection Component ----- */
-const ReviewSection: React.FC = () => {
-  return (
-    <View style={styles.reviewsSection}>
-      <Text style={{ color: "#fff" }}>Reviews content goes here.</Text>
-    </View>
-  );
-};
+/* ----- Review Section Component ----- */
+const ReviewSection: React.FC = () => (
+  <View style={styles.reviewsSection}>
+    <Text style={{ color: "#fff" }}>Reviews content goes here.</Text>
+  </View>
+);
 
 /* ----- Main Menu Component ----- */
 const Menu: React.FC = () => {
@@ -126,6 +124,7 @@ const Menu: React.FC = () => {
     };
 
     fetchProfilePicture();
+
     const mockSongs: Song[] = [
       {
         cover: require("../assets/images/jhayco.png"),
@@ -181,7 +180,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "black",
     textAlign: "center",
-    marginBottom: 20,
   },
   header: {
     flexDirection: "row",
@@ -190,6 +188,18 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 20,
     marginBottom: 10,
+  },
+  iconContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  bellIconButton: {
+    marginRight: 15,
+  },
+  bellIcon: {
+    width: 30,
+    height: 30,
+    tintColor: "#FF8001",
   },
   profileIconButton: {
     width: 50,
@@ -210,7 +220,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   tabButton: {
-    width: 172,
+    width: 115,
     height: 50,
     padding: 10,
     marginHorizontal: 4.5,

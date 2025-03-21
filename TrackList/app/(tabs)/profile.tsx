@@ -8,19 +8,25 @@ import {
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
+  ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
-import { Keyboard, TouchableWithoutFeedback, ScrollView } from "react-native";
 
 // Define user data type
 interface UserData {
   fullName: string;
+  username: string;
   email: string;
   bio: string;
   profilePicture: string;
+  followers?: number;
+  following?: number;
+  reviews?: number;
   dateOfBirth: string;
   phoneNumber: string;
 }
@@ -76,7 +82,7 @@ export default function Profile() {
   };
 
   const handlePickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
@@ -84,46 +90,7 @@ export default function Profile() {
     });
 
     if (!result.canceled) {
-      const selectedImageUri = result.assets[0].uri;
-
-      const response = await fetch(selectedImageUri);
-      const blob = await response.blob();
-      const fileSize = blob.size / (1024 * 1024); // Convert bytes to MB
-
-      if (fileSize > 2) {
-        Alert.alert("File too large", "Please select an image under 2MB.");
-        return;
-      }
-
-      if (
-        !selectedImageUri.endsWith(".png") &&
-        !selectedImageUri.endsWith(".jpg") &&
-        !selectedImageUri.endsWith(".jpeg")
-      ) {
-        Alert.alert(
-          "Invalid file type",
-          "Only PNG and JPEG files are allowed."
-        );
-        return;
-      }
-
-      setProfilePicture(selectedImageUri);
-
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const userRef = doc(db, "users", user.uid);
-          await updateDoc(userRef, {
-            profilePicture: selectedImageUri,
-            updatedAt: new Date(),
-          });
-
-          Alert.alert("Success", "Profile picture updated!");
-        }
-      } catch (error) {
-        Alert.alert("Error", "Failed to update profile picture.");
-        console.error("Profile update error:", error);
-      }
+      setProfilePicture(result.assets[0].uri);
     }
   };
 
@@ -145,10 +112,7 @@ export default function Profile() {
                 style={styles.profileBackground}
               />
               <TouchableOpacity onPress={handlePickImage}>
-                <Image
-                  source={{ uri: profilePicture }}
-                  style={styles.profileImage}
-                />
+                <Image source={{ uri: profilePicture }} style={styles.profileImage} />
               </TouchableOpacity>
             </View>
 
@@ -166,6 +130,17 @@ export default function Profile() {
             <Text style={styles.infoText}>
               {userData.phoneNumber || "Not provided"}
             </Text>
+
+            {/* Display Followers, Following, Reviews (if available) */}
+            {userData.followers !== undefined && (
+              <Text style={styles.infoText}>Followers: {userData.followers}</Text>
+            )}
+            {userData.following !== undefined && (
+              <Text style={styles.infoText}>Following: {userData.following}</Text>
+            )}
+            {userData.reviews !== undefined && (
+              <Text style={styles.infoText}>Reviews: {userData.reviews}</Text>
+            )}
 
             <Text style={styles.label}>Bio</Text>
             <TextInput

@@ -9,7 +9,8 @@ export default function Layout() {
       <Stack.Screen name="menu" />
       <Stack.Screen name="search" />
       <Stack.Screen name="homepage" />
-      <Stack.Screen name="resetpassword" options={{ title: "Reset Password" }} /> 
+      <Stack.Screen name="activity" />
+      <Stack.Screen name="resetpassword" options={{ title: "Reset Password" }} />
     </Stack>
   );
 }
