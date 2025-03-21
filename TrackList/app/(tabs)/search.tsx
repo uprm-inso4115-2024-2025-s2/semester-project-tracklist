@@ -10,82 +10,31 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { fetchSpotifySearchResults, SearchResult } from "../../spotify/trackService";
 
-// Dummy item data
-const data = [
-    {
-        id: "1",
-        title: "DeBÍ TiRAR MáS FOToS",
-        artist: "Bad Bunny",
-        year: "2025",
-        type: "Album",
-        image: require("../../assets/images/jhayco.png"),
-    },
-    {
-        id: "2",
-        title: "Viene Basquiat",
-        artist: "Jhayco",
-        year: "2024",
-        type: "Song",
-        image: require("../../assets/images/jhayco.png"),
-    },
-    {
-        id: "3",
-        title: "Not Like Us",
-        artist: "Kendrick Lamar",
-        year: "2024",
-        type: "Song",
-        image: require("../../assets/images/jhayco.png"),
-    },
-    {
-        id: "4",
-        title: "WILDFLOWER",
-        artist: "Billie Eilish",
-        year: "2024",
-        type: "Song",
-        image: require("../../assets/images/jhayco.png"),
-    },
-    {
-        id: "5",
-        title: "Born Again",
-        artist: "LISA",
-        year: "2025",
-        type: "Song",
-        image: require("../../assets/images/jhayco.png"),
-    },
-    {
-        id: "6",
-        title: "BETTER LUCK NEXT TIME",
-        artist: "Doja Cat",
-        year: "2024",
-        type: "Song",
-        image: require("../../assets/images/jhayco.png"),
-    },
-    {
-        id: "7",
-        title: "Fórmula, Vol. 3",
-        artist: "Romeo Santos",
-        year: "2022",
-        type: "Album",
-        image: require("../../assets/images/jhayco.png"),
-    },
-    {
-        id: "8",
-        title: "ESTRELLA",
-        artist: "Mora",
-        year: "2023",
-        type: "Song",
-        image: require("../../assets/images/jhayco.png"),
-    }
-];
 
 export default function Search() {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
+    const [results, setResults] = useState<SearchResult[]>([]);
 
-    const filteredData = data.filter((item) =>
-        item.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+
+    const handleSearch = async (query: string) => {
+        setSearchTerm(query);
+        if (!query.trim()) {
+            setResults([]);
+            return;
+        }
+
+        try {
+            const data = await fetchSpotifySearchResults(query);
+            console.log("🔍 Spotify API Response:", data); // ✅ Add this line
+            setResults(data);
+        } catch (err) {
+            console.error("Search failed:", err);
+            setResults([]);
+        }
+    };
 
     // @ts-ignore
     const renderItem = ({ item }) => (
@@ -113,7 +62,7 @@ export default function Search() {
                     style={styles.searchInput}
                     placeholder="Name of song or album"
                     value={searchTerm}
-                    onChangeText={setSearchTerm}
+                    onChangeText={handleSearch}
                 />
                 <TouchableOpacity onPress={() => null}>
                     <Ionicons name="filter-outline" size={20} color="#666" style={styles.filterIcon} />
@@ -123,7 +72,7 @@ export default function Search() {
             <Text style={styles.sectionTitle}>Recently Added</Text>
 
             <FlatList
-                data={filteredData}
+                data={results}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
                 contentContainerStyle={styles.listContent}
@@ -205,3 +154,4 @@ const styles = StyleSheet.create({
         color: "#666"
     },
 });
+

@@ -5,6 +5,15 @@ const SPOTIFY_TRACKS = process.env.REACT_APP_SPOTIFY_TRACKS; //"https://api.spot
 const SPOTIFY_AUDIO_FEATURES = process.env.REACT_APP_SPOTIFY_AUDIO_FEATURES; //"https://api.spotify.com/v1/audio-features?ids="
 const SPOTIFY_RECOMENDATIONS = process.env.REACT_APP_SPOTIFY_RECOMENDATIONS; // "https://api.spotify.com/v1/recommendations?"
 
+export interface SearchResult {
+  id: string;
+  title: string;
+  artist: string;
+  year: string;
+  type: "Song" | "Album";
+  image: { uri: string };
+}
+
 /**
  * Fetches track details from Spotify by track ID.
  * @param {string} trackId - The Spotify ID of the track.
@@ -123,6 +132,54 @@ export async function GetRecommendations(seed_artists: Array<string>, seed_genre
       throw new Error("");
   }
 }
+
+/**
+ * Fetch search results (tracks and albums) from Spotify API.
+ * @param {string} query - The search term entered by the user.
+ * @returns {Promise<SearchResult[]>} - Array of formatted song and album results.
+ */
+export async function fetchSpotifySearchResults(query: string): Promise<SearchResult[]> {
+  try {
+    const token = await fetchToken();
+
+    const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track,album&limit=10`;
+
+    const response = await fetch(searchUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Spotify search failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Ensure correct structure before returning
+    const tracks: SearchResult[] = data.tracks?.items?.map((item: any) => ({
+      id: item.id,
+      title: item.name,
+      artist: item.artists[0]?.name || "Unknown Artist",
+      year: item.album.release_date ? item.album.release_date.split("-")[0] : "Unknown",
+      type: "Song",
+      image: { uri: item.album.images?.[0]?.url || "" },
+    })) || [];
+
+    const albums: SearchResult[] = data.albums?.items?.map((item: any) => ({
+      id: item.id,
+      title: item.name,
+      artist: item.artists[0]?.name || "Unknown Artist",
+      year: item.release_date ? item.release_date.split("-")[0] : "Unknown",
+      type: "Album",
+      image: { uri: item.images?.[0]?.url || "" },
+    })) || [];
+
+    return [...tracks, ...albums];
+  } catch (error: any) {
+    console.error("Error fetching Spotify search results:", error.message);
+    return [];
+  }
+}
+
 
 export async function getTrackAudioFeatures(trackId: string): Promise<Object | null> {
   if (!trackId) {
