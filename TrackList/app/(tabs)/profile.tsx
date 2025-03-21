@@ -21,7 +21,7 @@ interface UserData {
   email: string;
   bio: string;
   profilePicture: string;
-  dateOfBirth: string; 
+  dateOfBirth: string;
   phoneNumber: string;
 }
 
@@ -138,56 +138,60 @@ export default function Profile() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView>
         <ScrollView>
-        <View style={styles.container}>
-      <View style={styles.profileContainer}>
-        <Image
-          source={{ uri: profilePicture }}
-          style={styles.profileBackground}
-        />
-        <TouchableOpacity onPress={handlePickImage}>
-          <Image source={{ uri: profilePicture }} style={styles.profileImage} />
-        </TouchableOpacity>
-      </View>
+          <View style={styles.container}>
+            <View style={styles.profileContainer}>
+              <Image
+                source={{ uri: profilePicture }}
+                style={styles.profileBackground}
+              />
+              <TouchableOpacity onPress={handlePickImage}>
+                <Image
+                  source={{ uri: profilePicture }}
+                  style={styles.profileImage}
+                />
+              </TouchableOpacity>
+            </View>
 
-      <Text style={styles.name}>{userData.fullName}</Text>
-      <Text style={styles.email}>{userData.email}</Text>
+            <Text style={styles.name}>{userData.fullName}</Text>
+            <Text style={styles.email}>{userData.email}</Text>
 
-      {/* Display Date of Birth */}
-      <Text style={styles.label}>Date of Birth</Text>
-      <Text style={styles.infoText}>{userData.dateOfBirth || "Not provided"}</Text>
+            {/* Display Date of Birth */}
+            <Text style={styles.label}>Date of Birth</Text>
+            <Text style={styles.infoText}>
+              {userData.dateOfBirth || "Not provided"}
+            </Text>
 
-      {/* Display Phone Number */}
-      <Text style={styles.label}>Phone Number</Text>
-      <Text style={styles.infoText}>{userData.phoneNumber || "Not provided"}</Text>
+            {/* Display Phone Number */}
+            <Text style={styles.label}>Phone Number</Text>
+            <Text style={styles.infoText}>
+              {userData.phoneNumber || "Not provided"}
+            </Text>
 
-      <Text style={styles.label}>Bio</Text>
-      <TextInput
-        style={styles.bioInput}
-        value={bio}
-        onChangeText={setBio}
-        multiline
-      />
+            <Text style={styles.label}>Bio</Text>
+            <TextInput
+              style={styles.bioInput}
+              value={bio}
+              onChangeText={setBio}
+              multiline
+            />
 
-      <TouchableOpacity
-        style={styles.updateButton}
-        onPress={handleUpdateProfile}
-      >
-        <Text style={styles.updateButtonText}>Update Profile</Text>
-      </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.updateButton}
+              onPress={handleUpdateProfile}
+            >
+              <Text style={styles.updateButtonText}>Update Profile</Text>
+            </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={() => router.replace("../(tabs)/menu")}
-      >
-        <Text style={styles.menuButtonText}>Back to Menu</Text>
-      </TouchableOpacity>
-    </View>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.replace("../(tabs)/menu")}
+            >
+              <Text style={styles.menuButtonText}>Back to Menu</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
-    
       </KeyboardAvoidingView>
-   
     </TouchableWithoutFeedback>
-
   );
 }
 
@@ -286,4 +290,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-
