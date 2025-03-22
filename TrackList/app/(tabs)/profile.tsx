@@ -6,12 +6,13 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
+  Modal,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebaseConfig";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 
 // Define user data type
@@ -29,6 +30,8 @@ export default function Profile() {
   const [bio, setBio] = useState<string>("");
   const [profilePicture, setProfilePicture] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -136,6 +139,30 @@ export default function Profile() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        // Delete user data from Firestore
+        await deleteDoc(doc(db, "users", user.uid));
+
+        // Delete the Firebase Authentication user
+        await user.delete();
+
+        // Navigate to the sign-in screen
+        router.replace("/signin");
+        Alert.alert("Success", "Your account has been deleted.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to delete account. Please try again.");
+      console.error("Delete error:", error);
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
+    }
+  };
+
   if (!userData) return <Text>Loading...</Text>;
 
   return (
@@ -185,6 +212,56 @@ export default function Profile() {
         )}
       </TouchableOpacity>
 
+      {/* Delete Account Button */}
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => setShowDeleteModal(true)}
+        disabled={deleteLoading}
+      >
+        {deleteLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.deleteButtonText}>Delete Account</Text>
+        )}
+      </TouchableOpacity>
+
+      {/* Confirmation Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Delete Account</Text>
+            <Text style={styles.modalText}>
+              Are you sure you want to delete your account? This action cannot
+              be undone.
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButtonCancel}
+                onPress={() => setShowDeleteModal(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButtonDelete}
+                onPress={handleDeleteAccount}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.modalButtonText}>Delete</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Back to Menu Button */}
       <TouchableOpacity
         style={styles.menuButton}
@@ -201,7 +278,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#1e1e1e", // Dark background color
+    backgroundColor: "#1e1e1e",
   },
   profileImage: {
     width: 120,
@@ -209,48 +286,43 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     marginBottom: 20,
   },
-  name: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#fff", // White text for dark background
-  },
-  email: {
-    fontSize: 16,
-    color: "#aaa", // Light gray text for dark background
-    marginBottom: 10,
-  },
   label: {
     fontSize: 16,
     fontWeight: "500",
     marginTop: 20,
     alignSelf: "flex-start",
     marginLeft: "10%",
-    color: "#fff", // White text for dark background
+    color: "#fff",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#444", // Darker border for dark background
+    borderColor: "#444",
     padding: 10,
     borderRadius: 8,
     width: "80%",
     marginBottom: 10,
-    color: "#fff", // White text for dark background
-    backgroundColor: "#333", // Dark input background
+    color: "#fff",
+    backgroundColor: "#333",
   },
   bioInput: {
     borderWidth: 1,
-    borderColor: "#444", // Darker border for dark background
+    borderColor: "#444",
     padding: 10,
     borderRadius: 8,
     width: "80%",
     height: 80,
     marginBottom: 20,
-    color: "#fff", // White text for dark background
-    backgroundColor: "#333", // Dark input background
+    color: "#fff",
+    backgroundColor: "#333",
+  },
+  email: {
+    fontSize: 16,
+    color: "#fff", // Changed to white
+    marginBottom: 10,
   },
   updateButton: {
     marginTop: 20,
-    backgroundColor: "#28a745", // Green button
+    backgroundColor: "#28a745",
     padding: 10,
     borderRadius: 8,
     width: "80%",
@@ -260,9 +332,21 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
+  deleteButton: {
+    marginTop: 10,
+    backgroundColor: "#dc3545",
+    padding: 10,
+    borderRadius: 8,
+    width: "80%",
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
   menuButton: {
     marginTop: 10,
-    backgroundColor: "#007bff", // Blue button
+    backgroundColor: "#007bff",
     padding: 10,
     borderRadius: 8,
     width: "80%",
@@ -275,8 +359,48 @@ const styles = StyleSheet.create({
   searchTitle: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#fff", // White text for dark background
+    color: "#fff",
     textAlign: "center",
     marginTop: 55,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#333",
+    padding: 20,
+    borderRadius: 10,
+    width: "80%",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    color: "#fff",
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  modalButtonCancel: {
+    padding: 10,
+    marginRight: 10,
+  },
+  modalButtonDelete: {
+    backgroundColor: "#dc3545",
+    padding: 10,
+    borderRadius: 5,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
