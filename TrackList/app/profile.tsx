@@ -7,28 +7,33 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../firebaseConfig";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
+import { Keyboard, TouchableWithoutFeedback, ScrollView } from "react-native";
 
 // Define user data type
 interface UserData {
   fullName: string;
   email: string;
-  username: string;
   bio: string;
   profilePicture: string;
+  dateOfBirth: string;
+  phoneNumber: string;
 }
 
 export default function Profile() {
   const router = useRouter();
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [username, setUsername] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const [profilePicture, setProfilePicture] = useState<string>("");
-  const [isEditingUsername, setIsEditingUsername] = useState<boolean>(false);
+  const [fullName, setFullName] = useState<string>("");
+  const [dateOfBirth, setDateOfBirth] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -41,8 +46,10 @@ export default function Profile() {
           if (userSnap.exists()) {
             const data = userSnap.data() as UserData;
             setUserData(data);
-            setUsername(data.username || "NewUser");
+            setFullName(data.fullName || "");
             setBio(data.bio || "Hello! I'm new here.");
+            setDateOfBirth(data.dateOfBirth || "");
+            setPhoneNumber(data.phoneNumber || "");
             setProfilePicture(
               data.profilePicture || "https://example.com/default-avatar.png"
             );
@@ -58,22 +65,18 @@ export default function Profile() {
 
   const handleUpdateProfile = async () => {
     try {
-      if (!username.trim()) {
-        Alert.alert("Error", "Username cannot be empty.");
-        return;
-      }
-
       const user = auth.currentUser;
       if (user) {
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, {
-          username,
+          fullName,
           bio,
+          dateOfBirth,
+          phoneNumber,
           profilePicture,
           updatedAt: new Date(),
         });
 
-        setIsEditingUsername(false); // Exit edit mode after saving
         Alert.alert("Success", "Profile updated!");
       }
     } catch (error) {
@@ -102,6 +105,18 @@ export default function Profile() {
         return;
       }
 
+      if (
+        !selectedImageUri.endsWith(".png") &&
+        !selectedImageUri.endsWith(".jpg") &&
+        !selectedImageUri.endsWith(".jpeg")
+      ) {
+        Alert.alert(
+          "Invalid file type",
+          "Only PNG and JPEG files are allowed."
+        );
+        return;
+      }
+
       setProfilePicture(selectedImageUri);
 
       try {
@@ -125,54 +140,77 @@ export default function Profile() {
   if (!userData) return <Text>Loading...</Text>;
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={handlePickImage}>
-        <Image source={{ uri: profilePicture }} style={styles.profileImage} />
-      </TouchableOpacity>
-      <Text style={styles.name}>{userData.fullName}</Text>
-      <Text style={styles.email}>{userData.email}</Text>
-
-      <Text style={styles.label}>Username</Text>
-      {isEditingUsername ? (
-        <TextInput
-          style={styles.input}
-          value={username}
-          onChangeText={setUsername}
-        />
-      ) : (
-        <Text style={styles.username}>{username}</Text>
-      )}
-
-      <TouchableOpacity
-        style={styles.editButton}
-        onPress={() => {
-          if (isEditingUsername) {
-            handleUpdateProfile();
-          } else {
-            setIsEditingUsername(true);
-          }
-        }}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <Text style={styles.editButtonText}>
-          {isEditingUsername ? "Save" : "Edit"}
-        </Text>
-      </TouchableOpacity>
+        <ScrollView>
+          <View style={styles.container}>
+            <View style={styles.profileContainer}>
+              <Image
+                source={{ uri: profilePicture }}
+                style={styles.profileBackground}
+              />
+              <TouchableOpacity onPress={handlePickImage}>
+                <Image
+                  source={{ uri: profilePicture }}
+                  style={styles.profileImage}
+                />
+              </TouchableOpacity>
+            </View>
 
-      <Text style={styles.label}>Bio</Text>
-      <TextInput
-        style={styles.bioInput}
-        value={bio}
-        onChangeText={setBio}
-        multiline
-      />
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={styles.input}
+              value={fullName}
+              onChangeText={setFullName}
+            />
 
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={() => router.replace("/menu")}
-      >
-        <Text style={styles.menuButtonText}>Back to Menu</Text>
-      </TouchableOpacity>
-    </View>
+            {/* Date of Birth */}
+            <Text style={styles.label}>Date of Birth</Text>
+            <TextInput
+              style={styles.input}
+              value={dateOfBirth}
+              onChangeText={setDateOfBirth}
+              keyboardType="numeric"
+            />
+
+            {/* Phone Number */}
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+            />
+
+            {/* Bio */}
+            <Text style={styles.label}>Bio</Text>
+            <TextInput
+              style={styles.bioInput}
+              value={bio}
+              onChangeText={setBio}
+              multiline
+            />
+
+            <TouchableOpacity
+              style={styles.updateButton}
+              onPress={handleUpdateProfile}
+            >
+              <Text style={styles.updateButtonText}>Update Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.replace("/menu")}
+            >
+              <Text style={styles.menuButtonText}>Back Menu</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -182,6 +220,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     backgroundColor: "#121212",
+    minHeight: "100%",
+  },
+  profileContainer: {
+    width: "100%",
+    height: 200,
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1E1E1E",
+  },
+  profileBackground: {
+    position: "absolute",
+    top: 0,
+    width: "100%",
+    height: "100%",
+    opacity: 0.3,
   },
   profileImage: {
     width: 100,
@@ -189,12 +243,15 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 3,
     borderColor: "#00FF99",
-    marginBottom: 20,
+    position: "absolute",
+    bottom: -50,
+    alignSelf: "center",
   },
   name: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#FFFFFF",
+    marginTop: 60,
     marginBottom: 5,
   },
   email: {
@@ -210,25 +267,12 @@ const styles = StyleSheet.create({
     marginLeft: "10%",
     marginTop: 10,
   },
-  username: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    backgroundColor: "#1E1E1E",
-    padding: 10,
-    borderRadius: 8,
-    width: "90%",
-    textAlign: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#333333",
-    backgroundColor: "#1E1E1E",
-    padding: 10,
-    borderRadius: 8,
-    width: "90%",
-    color: "#FFFFFF",
-    height: 40,
+  infoText: {
+    fontSize: 14,
+    color: "#CCCCCC",
+    alignSelf: "flex-start",
+    marginLeft: "10%",
+    marginBottom: 10,
   },
   bioInput: {
     borderWidth: 1,
@@ -240,20 +284,21 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     height: 80,
   },
-  editButton: {
-    marginTop: 10,
+  updateButton: {
+    marginTop: 20,
     backgroundColor: "#00FF99",
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
-    width: "40%",
+    width: "90%",
     alignItems: "center",
   },
-  editButtonText: {
+  updateButtonText: {
     color: "#000000",
     fontWeight: "bold",
+    fontSize: 16,
   },
   menuButton: {
-    marginTop: 20,
+    marginTop: 10,
     backgroundColor: "#444444",
     padding: 10,
     borderRadius: 8,
@@ -263,5 +308,16 @@ const styles = StyleSheet.create({
   menuButtonText: {
     color: "#FFFFFF",
     fontWeight: "bold",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#333333",
+    backgroundColor: "#1E1E1E",
+    padding: 10,
+    borderRadius: 8,
+    width: "90%",
+    color: "#FFFFFF",
+    height: 45,
+    marginBottom: 10,
   },
 });
