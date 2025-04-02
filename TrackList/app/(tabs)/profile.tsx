@@ -11,6 +11,8 @@ import {
   ScrollView,
   Keyboard,
   TouchableWithoutFeedback,
+  ActivityIndicator,
+  
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebaseConfig";
@@ -24,18 +26,20 @@ interface UserData {
   email: string;
   bio: string;
   profilePicture: string;
-  followers?: number;
-  following?: number;
-  reviews?: number;
-  dateOfBirth: string;
-  phoneNumber: string;
+followers?: number;
+following?: number;
+reviews?: number;
+dateOfBirth: string;
+phoneNumber: string;
 }
 
 export default function Profile() {
   const router = useRouter();
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [fullName, setFullName] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const [profilePicture, setProfilePicture] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -48,6 +52,7 @@ export default function Profile() {
           if (userSnap.exists()) {
             const data = userSnap.data() as UserData;
             setUserData(data);
+            setFullName(data.fullName || "");
             setBio(data.bio || "Hello! I'm new here.");
             setProfilePicture(
               data.profilePicture || "https://example.com/default-avatar.png"
@@ -63,11 +68,18 @@ export default function Profile() {
   }, []);
 
   const handleUpdateProfile = async () => {
+    if (!fullName.trim()) {
+      Alert.alert("Error", "Please enter your full name.");
+      return;
+    }
+
     try {
+      setLoading(true);
       const user = auth.currentUser;
       if (user) {
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, {
+          fullName,
           bio,
           profilePicture,
           updatedAt: new Date(),
@@ -78,6 +90,8 @@ export default function Profile() {
     } catch (error) {
       Alert.alert("Error", "Failed to update profile.");
       console.error("Update error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -94,79 +108,89 @@ export default function Profile() {
     }
   };
 
-  if (!userData)
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading... No user data...</Text>
-      </View>
-    );
+  if (!userData) return <Text>Loading...</Text>;
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView>
-        <ScrollView>
-          <View style={styles.container}>
-            <View style={styles.profileContainer}>
-              <Image
-                source={{ uri: profilePicture }}
-                style={styles.profileBackground}
-              />
-              <TouchableOpacity onPress={handlePickImage}>
-                <Image source={{ uri: profilePicture }} style={styles.profileImage} />
-              </TouchableOpacity>
-            </View>
+<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+  <KeyboardAvoidingView>
+    <ScrollView>
+      <View style={styles.container}>
+        <Text style={styles.searchTitle}>Profile</Text>
 
-            <Text style={styles.name}>{userData.fullName}</Text>
-            <Text style={styles.email}>{userData.email}</Text>
+        <View style={styles.profileContainer}>
+          <Image
+            source={{ uri: profilePicture }}
+            style={styles.profileBackground}
+          />
+          <TouchableOpacity onPress={handlePickImage}>
+            <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+          </TouchableOpacity>
+        </View>
 
-            {/* Display Date of Birth */}
-            <Text style={styles.label}>Date of Birth</Text>
-            <Text style={styles.infoText}>
-              {userData.dateOfBirth || "Not provided"}
-            </Text>
 
-            {/* Display Phone Number */}
-            <Text style={styles.label}>Phone Number</Text>
-            <Text style={styles.infoText}>
-              {userData.phoneNumber || "Not provided"}
-            </Text>
+      {/* Profile Picture */}
+      <TouchableOpacity onPress={handlePickImage}>
+        <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+      </TouchableOpacity>
 
-            {/* Display Followers, Following, Reviews (if available) */}
-            {userData.followers !== undefined && (
-              <Text style={styles.infoText}>Followers: {userData.followers}</Text>
-            )}
-            {userData.following !== undefined && (
-              <Text style={styles.infoText}>Following: {userData.following}</Text>
-            )}
-            {userData.reviews !== undefined && (
-              <Text style={styles.infoText}>Reviews: {userData.reviews}</Text>
-            )}
+      {/* Full Name */}
+      <Text style={styles.label}>Full Name</Text>
+      <TextInput
+        style={styles.input}
+        value={fullName}
+        onChangeText={setFullName}
+        placeholder="Enter your full name"
+        placeholderTextColor="#999"
+      />
 
-            <Text style={styles.label}>Bio</Text>
-            <TextInput
-              style={styles.bioInput}
-              value={bio}
-              onChangeText={setBio}
-              multiline
-            />
+      {/* Email (Read-only) */}
+      <Text style={styles.label}>Email</Text>
+      <Text style={styles.email}>{userData.email}</Text>
 
-            <TouchableOpacity
-              style={styles.updateButton}
-              onPress={handleUpdateProfile}
-            >
-              <Text style={styles.updateButtonText}>Update Profile</Text>
-            </TouchableOpacity>
+{/* Display Followers, Following, Reviews (if available) */}
+{userData.followers !== undefined && (
+  <Text style={styles.infoText}>Followers: {userData.followers}</Text>
+)}
+{userData.following !== undefined && (
+  <Text style={styles.infoText}>Following: {userData.following}</Text>
+)}
+{userData.reviews !== undefined && (
+  <Text style={styles.infoText}>Reviews: {userData.reviews}</Text>
+)}
 
-            <TouchableOpacity
-              style={styles.menuButton}
-              onPress={() => router.replace("../(tabs)/menu")}
-            >
-              <Text style={styles.menuButtonText}>Back to Menu</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+{/* Bio */}
+<Text style={styles.label}>Bio</Text>
+<TextInput
+  style={styles.bioInput}
+  value={bio}
+  onChangeText={setBio}
+  multiline
+  placeholder="Tell us about yourself"
+  placeholderTextColor="#999"
+/>
+
+
+      {/* Update Profile Button */}
+      <TouchableOpacity
+        style={styles.updateButton}
+        onPress={handleUpdateProfile}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.updateButtonText}>Update Profile</Text>
+        )}
+      </TouchableOpacity>
+
+      {/* Back to Menu Button */}
+      <TouchableOpacity
+        style={styles.menuButton}
+        onPress={() => router.replace("/menu")}
+      >
+        <Text style={styles.menuButtonText}>Back to Menu</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -175,93 +199,82 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#121212",
-  },
-  profileContainer: {
-    width: "100%",
-    height: 200,
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#1E1E1E",
-  },
-  profileBackground: {
-    position: "absolute",
-    top: 0,
-    width: "100%",
-    height: "100%",
-    opacity: 0.3,
+    backgroundColor: "#1e1e1e", // Dark background color
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 3,
-    borderColor: "#00FF99",
-    position: "absolute",
-    bottom: -50,
-    alignSelf: "center",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 20,
   },
   name: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#FFFFFF",
-    marginTop: 60,
-    marginBottom: 5,
+    color: "#fff", // White text for dark background
   },
   email: {
-    fontSize: 14,
-    color: "#AAAAAA",
-    marginBottom: 15,
+    fontSize: 16,
+    color: "#aaa", // Light gray text for dark background
+    marginBottom: 10,
   },
   label: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#FFFFFF",
+    marginTop: 20,
     alignSelf: "flex-start",
     marginLeft: "10%",
-    marginTop: 10,
+    color: "#fff", // White text for dark background
   },
-  infoText: {
-    fontSize: 14,
-    color: "#CCCCCC",
-    alignSelf: "flex-start",
-    marginLeft: "10%",
+  input: {
+    borderWidth: 1,
+    borderColor: "#444", // Darker border for dark background
+    padding: 10,
+    borderRadius: 8,
+    width: "80%",
     marginBottom: 10,
+    color: "#fff", // White text for dark background
+    backgroundColor: "#333", // Dark input background
   },
   bioInput: {
     borderWidth: 1,
-    borderColor: "#333333",
-    backgroundColor: "#1E1E1E",
+    borderColor: "#444", // Darker border for dark background
     padding: 10,
     borderRadius: 8,
-    width: "90%",
-    color: "#FFFFFF",
+    width: "80%",
     height: 80,
+    marginBottom: 20,
+    color: "#fff", // White text for dark background
+    backgroundColor: "#333", // Dark input background
   },
   updateButton: {
     marginTop: 20,
-    backgroundColor: "#00FF99",
-    padding: 12,
+    backgroundColor: "#28a745", // Green button
+    padding: 10,
     borderRadius: 8,
-    width: "90%",
+    width: "80%",
     alignItems: "center",
   },
   updateButtonText: {
-    color: "#000000",
+    color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
   },
   menuButton: {
     marginTop: 10,
-    backgroundColor: "#444444",
+    backgroundColor: "#007bff", // Blue button
     padding: 10,
     borderRadius: 8,
-    width: "90%",
+    width: "80%",
     alignItems: "center",
   },
   menuButtonText: {
-    color: "#FFFFFF",
+    color: "#fff",
     fontWeight: "bold",
+  },
+  searchTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#fff", // White text for dark background
+    textAlign: "center",
+    marginTop: 55,
   },
 });
