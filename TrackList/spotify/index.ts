@@ -158,13 +158,20 @@ export async function getRelatedArtists(artistId: string): Promise<Object | null
   }
 }
 
+interface TopTrack {
+  name: string;
+  albumName: string;
+  artists: string;
+  previewUrl: string | null;
+  spotifyUrl: string;
+}
 /**
  * Fetches the top tracks of an artist from Spotify.
  * @param {string} artistId - The Spotify ID of the artist.
  * @param {string} [country="US"] - The country code for track filtering.
- * @returns {Promise<Object | null>} - The top tracks data or null if an error occurs.
+ * @returns {Promise<{ topTracks: TopTrack[]; stringArray: string[] }>} - The top tracks data or empty array if an error occurs.
  */
-export async function getTopTracks(artistId: string, country: string = "US"): Promise<Object | null> {
+export async function getTopTracks(artistId: string, country: string = "US"): Promise<{ topTracks: TopTrack[]; stringArray: string[] }> {
   try {
     const token = await fetchToken(); // Retrieve access token
     const response = await fetch(`${ARTISTS_API_URL}/${artistId}/top-tracks?market=${country}`, {
@@ -175,10 +182,28 @@ export async function getTopTracks(artistId: string, country: string = "US"): Pr
       throw new Error(`Failed to fetch top tracks: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    const topTracks: TopTrack[] = data.tracks.map((track: any) => ({
+      name: track.name,
+      albumName: track.album.name,
+      artists: track.artists.map((artist: any) => artist.name).join(", "),
+      previewUrl: track.preview_url,
+      spotifyUrl: track.external_urls.spotify,
+    }));
+
+    const stringArray = topTracks.map(
+      (track, index) =>
+        `${index + 1}. ${track.name} by ${track.artists} — Album: ${track.albumName}${
+          track.previewUrl ? ` (Preview: ${track.previewUrl})` : ""
+        } — Listen: ${track.spotifyUrl}`
+    );
+    return { topTracks, stringArray };
   } catch (error: any) {
     console.error("Error fetching top tracks:", error.message);
-    return null;
+    return {
+      topTracks: [],
+      stringArray: ["Error fetching top tracks."],
+    };
   }
 }
 
