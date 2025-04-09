@@ -7,7 +7,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback,
   ActivityIndicator,
+  
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebaseConfig";
@@ -17,9 +22,15 @@ import * as ImagePicker from "expo-image-picker";
 // Define user data type
 interface UserData {
   fullName: string;
+  username: string;
   email: string;
   bio: string;
   profilePicture: string;
+followers?: number;
+following?: number;
+reviews?: number;
+dateOfBirth: string;
+phoneNumber: string;
 }
 
 export default function Profile() {
@@ -85,7 +96,7 @@ export default function Profile() {
   };
 
   const handlePickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
@@ -93,54 +104,29 @@ export default function Profile() {
     });
 
     if (!result.canceled) {
-      const selectedImageUri = result.assets[0].uri;
-
-      const response = await fetch(selectedImageUri);
-      const blob = await response.blob();
-      const fileSize = blob.size / (1024 * 1024); // Convert bytes to MB
-
-      if (fileSize > 2) {
-        Alert.alert("File too large", "Please select an image under 2MB.");
-        return;
-      }
-
-      if (
-        !selectedImageUri.endsWith(".png") &&
-        !selectedImageUri.endsWith(".jpg") &&
-        !selectedImageUri.endsWith(".jpeg")
-      ) {
-        Alert.alert(
-          "Invalid file type",
-          "Only PNG and JPEG files are allowed."
-        );
-        return;
-      }
-
-      setProfilePicture(selectedImageUri);
-
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const userRef = doc(db, "users", user.uid);
-          await updateDoc(userRef, {
-            profilePicture: selectedImageUri,
-            updatedAt: new Date(),
-          });
-
-          Alert.alert("Success", "Profile picture updated!");
-        }
-      } catch (error) {
-        Alert.alert("Error", "Failed to update profile picture.");
-        console.error("Profile update error:", error);
-      }
+      setProfilePicture(result.assets[0].uri);
     }
   };
 
   if (!userData) return <Text>Loading...</Text>;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.searchTitle}>Profile</Text>
+<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+  <KeyboardAvoidingView>
+    <ScrollView>
+      <View style={styles.container}>
+        <Text style={styles.searchTitle}>Profile</Text>
+
+        <View style={styles.profileContainer}>
+          <Image
+            source={{ uri: profilePicture }}
+            style={styles.profileBackground}
+          />
+          <TouchableOpacity onPress={handlePickImage}>
+            <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+          </TouchableOpacity>
+        </View>
+
 
       {/* Profile Picture */}
       <TouchableOpacity onPress={handlePickImage}>
@@ -161,16 +147,28 @@ export default function Profile() {
       <Text style={styles.label}>Email</Text>
       <Text style={styles.email}>{userData.email}</Text>
 
-      {/* Bio */}
-      <Text style={styles.label}>Bio</Text>
-      <TextInput
-        style={styles.bioInput}
-        value={bio}
-        onChangeText={setBio}
-        multiline
-        placeholder="Tell us about yourself"
-        placeholderTextColor="#999"
-      />
+{/* Display Followers, Following, Reviews (if available) */}
+{userData.followers !== undefined && (
+  <Text style={styles.infoText}>Followers: {userData.followers}</Text>
+)}
+{userData.following !== undefined && (
+  <Text style={styles.infoText}>Following: {userData.following}</Text>
+)}
+{userData.reviews !== undefined && (
+  <Text style={styles.infoText}>Reviews: {userData.reviews}</Text>
+)}
+
+{/* Bio */}
+<Text style={styles.label}>Bio</Text>
+<TextInput
+  style={styles.bioInput}
+  value={bio}
+  onChangeText={setBio}
+  multiline
+  placeholder="Tell us about yourself"
+  placeholderTextColor="#999"
+/>
+
 
       {/* Update Profile Button */}
       <TouchableOpacity
