@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, Image, FlatList, StyleSheet } from "react-native";
 import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
+import ProtectedRoute from "../../components/ProtectedRoute";
 
 interface Notification {
   id: string;
@@ -10,7 +11,7 @@ interface Notification {
   profilePicture: string;
 }
 
-export default function Notifications() {
+const NotificationsContent: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: "1",
@@ -66,40 +67,48 @@ export default function Notifications() {
       />
     </View>
   );
+};
+
+export default function Notifications() {
+  return (
+    <ProtectedRoute>
+      <NotificationsContent />
+    </ProtectedRoute>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: "#ffffff", 
-      padding: 20,
-    },
-    header: {
-      fontSize: 22,
-      fontWeight: "bold",
-      color: "#000",
-      marginBottom: 15,
-    },
-    notificationItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "#f5f5f5", 
-      padding: 10,
-      borderRadius: 10,
-      marginBottom: 10,
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 10,
-    },
-    text: {
-      color: "#000", 
-      fontSize: 14,
-    },
-    username: {
-      fontWeight: "bold",
-      color: "#000", 
-    },
-  });
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff", 
+    padding: 20,
+  },
+  header: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 15,
+  },
+  notificationItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5", 
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  text: {
+    color: "#000", 
+    fontSize: 14,
+  },
+  username: {
+    fontWeight: "bold",
+    color: "#000", 
+  },
+});

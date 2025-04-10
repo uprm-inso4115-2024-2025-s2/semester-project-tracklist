@@ -42,7 +42,7 @@ const SignInScreen = () => {
         try {
             await signInWithEmailAndPassword(auth, data.email, data.password);
             console.log('Login Data:', data);
-            router.replace('search');
+            router.replace('/search');
         } catch (error) {
             console.error('Firebase login error:', error);
         } finally {
@@ -113,7 +113,7 @@ const SignInScreen = () => {
                 {/* Guest Login Button */}
                 <TouchableOpacity 
                     style={[styles.button, styles.guestButton]} 
-                    onPress={() => router.replace('search')}
+                    onPress={() => router.replace('/search')}
                 >
                     <Text style={styles.buttonText}>Login without Account</Text>
                 </TouchableOpacity>

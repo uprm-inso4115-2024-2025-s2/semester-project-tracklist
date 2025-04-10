@@ -7,6 +7,7 @@ import {
   StyleSheet,
   FlatList,
 } from "react-native";
+import ProtectedRoute from "../../components/ProtectedRoute";
 
 interface Activity {
   id: number;
@@ -39,7 +40,7 @@ const activities: Activity[] = [
   },
 ];
 
-const ActivityTab: React.FC = () => {
+const ActivityTabContent: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<"friends" | "you" | "upcoming">("you");
 
   return (
@@ -91,6 +92,14 @@ const ActivityTab: React.FC = () => {
     </View>
   );
 };
+
+export default function ActivityTab() {
+  return (
+    <ProtectedRoute>
+      <ActivityTabContent />
+    </ProtectedRoute>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -184,5 +193,3 @@ const styles = StyleSheet.create({
     color: "#555",
   },
 });
-
-export default ActivityTab;

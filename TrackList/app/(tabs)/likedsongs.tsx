@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet, Modal } from "react-native";
 import { useRouter } from "expo-router";
+import ProtectedRoute from "../../components/ProtectedRoute";
 
 const likedItems = [
   { id: "1", image: require("../../assets/images/jhayco.png") },
@@ -15,18 +16,18 @@ const sortOptions = ["Newest to oldest", "Oldest to newest"];
 const dateFilters = ["All dates", "Past week", "Past month", "Past year", "Date range"];
 const artistFilters = ["JhayCo", "Kendrick Lamar", "Doja Cat", "Benson Boone", "Shaboozey"];
 
-export default function LikesScreen() {
+const LikesScreenContent = () => {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [filterType, setFilterType] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
   
-  const openModal = (type) => {
+  const openModal = (type: string) => {
     setFilterType(type);
     setModalVisible(true);
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: any }) => (
     <View style={styles.itemContainer}>
       <Image source={item.image} style={styles.image} />
     </View>
@@ -100,6 +101,14 @@ export default function LikesScreen() {
         </View>
       </Modal>
     </View>
+  );
+};
+
+export default function LikesScreen() {
+  return (
+    <ProtectedRoute>
+      <LikesScreenContent />
+    </ProtectedRoute>
   );
 }
 

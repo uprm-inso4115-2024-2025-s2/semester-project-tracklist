@@ -12,12 +12,12 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
+import ProtectedRoute from "../../components/ProtectedRoute";
 
 // Define user data type
 interface UserData {
@@ -26,14 +26,14 @@ interface UserData {
   email: string;
   bio: string;
   profilePicture: string;
-followers?: number;
-following?: number;
-reviews?: number;
-dateOfBirth: string;
-phoneNumber: string;
+  followers?: number;
+  following?: number;
+  reviews?: number;
+  dateOfBirth: string;
+  phoneNumber: string;
 }
 
-export default function Profile() {
+function ProfileContent() {
   const router = useRouter();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [fullName, setFullName] = useState<string>("");
@@ -84,7 +84,6 @@ export default function Profile() {
           profilePicture,
           updatedAt: new Date(),
         });
-
         Alert.alert("Success", "Profile updated!");
       }
     } catch (error) {
@@ -111,86 +110,107 @@ export default function Profile() {
   if (!userData) return <Text>Loading...</Text>;
 
   return (
-<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-  <KeyboardAvoidingView>
-    <ScrollView>
-      <View style={styles.container}>
-        <Text style={styles.searchTitle}>Profile</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView>
+        <ScrollView>
+          <View style={styles.container}>
+            <Text style={styles.searchTitle}>Profile</Text>
 
-        <View style={styles.profileContainer}>
-          <Image
-            source={{ uri: profilePicture }}
-            style={styles.profileBackground}
-          />
-          <TouchableOpacity onPress={handlePickImage}>
-            <Image source={{ uri: profilePicture }} style={styles.profileImage} />
-          </TouchableOpacity>
-        </View>
+            <View style={styles.profileContainer}>
+              <Image
+                source={{ uri: profilePicture }}
+                style={styles.profileBackground}
+              />
+              <TouchableOpacity onPress={handlePickImage}>
+                <Image
+                  source={{ uri: profilePicture }}
+                  style={styles.profileImage}
+                />
+              </TouchableOpacity>
+            </View>
 
+            {/* Profile Picture */}
+            <TouchableOpacity onPress={handlePickImage}>
+              <Image
+                source={{ uri: profilePicture }}
+                style={styles.profileImage}
+              />
+            </TouchableOpacity>
 
-      {/* Profile Picture */}
-      <TouchableOpacity onPress={handlePickImage}>
-        <Image source={{ uri: profilePicture }} style={styles.profileImage} />
-      </TouchableOpacity>
+            {/* Full Name */}
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={styles.input}
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="Enter your full name"
+              placeholderTextColor="#999"
+            />
 
-      {/* Full Name */}
-      <Text style={styles.label}>Full Name</Text>
-      <TextInput
-        style={styles.input}
-        value={fullName}
-        onChangeText={setFullName}
-        placeholder="Enter your full name"
-        placeholderTextColor="#999"
-      />
+            {/* Email (Read-only) */}
+            <Text style={styles.label}>Email</Text>
+            <Text style={styles.email}>{userData.email}</Text>
 
-      {/* Email (Read-only) */}
-      <Text style={styles.label}>Email</Text>
-      <Text style={styles.email}>{userData.email}</Text>
+            {/* Display Followers, Following, Reviews (if available) */}
+            {userData.followers !== undefined && (
+              <Text style={styles.infoText}>
+                Followers: {userData.followers}
+              </Text>
+            )}
+            {userData.following !== undefined && (
+              <Text style={styles.infoText}>
+                Following: {userData.following}
+              </Text>
+            )}
+            {userData.reviews !== undefined && (
+              <Text style={styles.infoText}>
+                Reviews: {userData.reviews}
+              </Text>
+            )}
 
-{/* Display Followers, Following, Reviews (if available) */}
-{userData.followers !== undefined && (
-  <Text style={styles.infoText}>Followers: {userData.followers}</Text>
-)}
-{userData.following !== undefined && (
-  <Text style={styles.infoText}>Following: {userData.following}</Text>
-)}
-{userData.reviews !== undefined && (
-  <Text style={styles.infoText}>Reviews: {userData.reviews}</Text>
-)}
+            {/* Bio */}
+            <Text style={styles.label}>Bio</Text>
+            <TextInput
+              style={styles.bioInput}
+              value={bio}
+              onChangeText={setBio}
+              multiline
+              placeholder="Tell us about yourself"
+              placeholderTextColor="#999"
+            />
 
-{/* Bio */}
-<Text style={styles.label}>Bio</Text>
-<TextInput
-  style={styles.bioInput}
-  value={bio}
-  onChangeText={setBio}
-  multiline
-  placeholder="Tell us about yourself"
-  placeholderTextColor="#999"
-/>
+            {/* Update Profile Button */}
+            <TouchableOpacity
+              style={styles.updateButton}
+              onPress={handleUpdateProfile}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.updateButtonText}>Update Profile</Text>
+              )}
+            </TouchableOpacity>
 
+            {/* Back to Menu Button */}
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.replace("/menu")}
+            >
+              <Text style={styles.menuButtonText}>Back to Menu</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
+  );
+}
 
-      {/* Update Profile Button */}
-      <TouchableOpacity
-        style={styles.updateButton}
-        onPress={handleUpdateProfile}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.updateButtonText}>Update Profile</Text>
-        )}
-      </TouchableOpacity>
-
-      {/* Back to Menu Button */}
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={() => router.replace("/menu")}
-      >
-        <Text style={styles.menuButtonText}>Back to Menu</Text>
-      </TouchableOpacity>
-    </View>
+export default function Profile() {
+  return (
+    <ProtectedRoute>
+      <ProfileContent />
+    </ProtectedRoute>
   );
 }
 
@@ -201,11 +221,22 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#1e1e1e", // Dark background color
   },
+  profileContainer: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
     marginBottom: 20,
+  },
+  profileBackground: {
+    width: "100%",
+    height: 200,
+    resizeMode: "cover",
   },
   name: {
     fontSize: 22,
@@ -215,6 +246,11 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 16,
     color: "#aaa", // Light gray text for dark background
+    marginBottom: 10,
+  },
+  infoText: {
+    fontSize: 16,
+    color: "#fff",
     marginBottom: 10,
   },
   label: {

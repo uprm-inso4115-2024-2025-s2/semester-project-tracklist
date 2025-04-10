@@ -2,6 +2,7 @@ import { useNavigation, useRouter } from 'expo-router';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, Animated } from 'react-native';
 import { useColorScheme } from '@/components/useColorScheme';
+import ProtectedRoute from "../../components/ProtectedRoute";
 const bellIcon = require('../../assets/images/Bell.png');
 
 interface Song {
@@ -11,7 +12,7 @@ interface Song {
   date: string;
 }
 
-const Menu: React.FC = () => {
+const MenuContent: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<'songs' | 'reviews'>('songs');
   const [songs, setSongs] = useState<Song[]>([]);
   const navigation = useNavigation();
@@ -57,7 +58,7 @@ const Menu: React.FC = () => {
         <Text style={styles.tracklistTitle}>TrackList</Text>
         <TouchableOpacity 
           style={styles.notificationTab} 
-          onPress={() => router.push("/notification")} // Navigate to notification tab
+          onPress={() => router.push("/notification")}
         >
           <Image source={bellIcon} style={styles.bellIcon} />
           <Text style={styles.notificationCount}>3</Text>
@@ -106,6 +107,14 @@ const Menu: React.FC = () => {
     </View>
   );
 };
+
+export default function Menu() {
+  return (
+    <ProtectedRoute>
+      <MenuContent />
+    </ProtectedRoute>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -206,5 +215,3 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
 });
-
-export default Menu;
