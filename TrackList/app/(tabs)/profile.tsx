@@ -12,7 +12,6 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebaseConfig";
@@ -26,11 +25,11 @@ interface UserData {
   email: string;
   bio: string;
   profilePicture: string;
-followers?: number;
-following?: number;
-reviews?: number;
-dateOfBirth: string;
-phoneNumber: string;
+  followers?: number;
+  following?: number;
+  reviews?: number;
+  dateOfBirth: string;
+  phoneNumber: string;
 }
 
 export default function Profile() {
@@ -111,86 +110,91 @@ export default function Profile() {
   if (!userData) return <Text>Loading...</Text>;
 
   return (
-<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-  <KeyboardAvoidingView>
-    <ScrollView>
-      <View style={styles.container}>
-        <Text style={styles.searchTitle}>Profile</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+        <ScrollView>
+          <View style={styles.container}>
+            <Text style={styles.searchTitle}>Profile</Text>
 
-        <View style={styles.profileContainer}>
-          <Image
-            source={{ uri: profilePicture }}
-            style={styles.profileBackground}
-          />
-          <TouchableOpacity onPress={handlePickImage}>
-            <Image source={{ uri: profilePicture }} style={styles.profileImage} />
-          </TouchableOpacity>
-        </View>
+            <View style={styles.profileContainer}>
+              <Image
+                source={{ uri: profilePicture }}
+                style={styles.profileBackground}
+              />
+              <TouchableOpacity onPress={handlePickImage}>
+                <Image
+                  source={{ uri: profilePicture }}
+                  style={styles.profileImage}
+                />
+              </TouchableOpacity>
+            </View>
 
+            {/* Full Name */}
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={styles.input}
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="Enter your full name"
+              placeholderTextColor="#999"
+            />
 
-      {/* Profile Picture */}
-      <TouchableOpacity onPress={handlePickImage}>
-        <Image source={{ uri: profilePicture }} style={styles.profileImage} />
-      </TouchableOpacity>
+            {/* Email (Read-only) */}
+            <Text style={styles.label}>Email</Text>
+            <Text style={styles.email}>{userData.email}</Text>
 
-      {/* Full Name */}
-      <Text style={styles.label}>Full Name</Text>
-      <TextInput
-        style={styles.input}
-        value={fullName}
-        onChangeText={setFullName}
-        placeholder="Enter your full name"
-        placeholderTextColor="#999"
-      />
+            {/* Display Followers, Following, Reviews (if available) */}
+            {userData.followers !== undefined && (
+              <Text style={styles.infoText}>
+                Followers: {userData.followers}
+              </Text>
+            )}
+            {userData.following !== undefined && (
+              <Text style={styles.infoText}>
+                Following: {userData.following}
+              </Text>
+            )}
+            {userData.reviews !== undefined && (
+              <Text style={styles.infoText}>
+                Reviews: {userData.reviews}
+              </Text>
+            )}
 
-      {/* Email (Read-only) */}
-      <Text style={styles.label}>Email</Text>
-      <Text style={styles.email}>{userData.email}</Text>
+            {/* Bio */}
+            <Text style={styles.label}>Bio</Text>
+            <TextInput
+              style={styles.bioInput}
+              value={bio}
+              onChangeText={setBio}
+              multiline
+              placeholder="Tell us about yourself"
+              placeholderTextColor="#999"
+            />
 
-{/* Display Followers, Following, Reviews (if available) */}
-{userData.followers !== undefined && (
-  <Text style={styles.infoText}>Followers: {userData.followers}</Text>
-)}
-{userData.following !== undefined && (
-  <Text style={styles.infoText}>Following: {userData.following}</Text>
-)}
-{userData.reviews !== undefined && (
-  <Text style={styles.infoText}>Reviews: {userData.reviews}</Text>
-)}
+            {/* Update Profile Button */}
+            <TouchableOpacity
+              style={styles.updateButton}
+              onPress={handleUpdateProfile}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.updateButtonText}>Update Profile</Text>
+              )}
+            </TouchableOpacity>
 
-{/* Bio */}
-<Text style={styles.label}>Bio</Text>
-<TextInput
-  style={styles.bioInput}
-  value={bio}
-  onChangeText={setBio}
-  multiline
-  placeholder="Tell us about yourself"
-  placeholderTextColor="#999"
-/>
-
-
-      {/* Update Profile Button */}
-      <TouchableOpacity
-        style={styles.updateButton}
-        onPress={handleUpdateProfile}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.updateButtonText}>Update Profile</Text>
-        )}
-      </TouchableOpacity>
-
-      {/* Back to Menu Button */}
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={() => router.replace("/menu")}
-      >
-        <Text style={styles.menuButtonText}>Back to Menu</Text>
-      </TouchableOpacity>
-    </View>
+            {/* Back to Menu Button */}
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.replace("/menu")}
+            >
+              <Text style={styles.menuButtonText}>Back to Menu</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -199,7 +203,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#1e1e1e", // Dark background color
+    backgroundColor: "#1e1e1e",
+  },
+  profileContainer: {
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  profileBackground: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    position: "absolute",
   },
   profileImage: {
     width: 120,
@@ -210,11 +224,11 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#fff", // White text for dark background
+    color: "#fff",
   },
   email: {
     fontSize: 16,
-    color: "#aaa", // Light gray text for dark background
+    color: "#aaa",
     marginBottom: 10,
   },
   label: {
@@ -223,32 +237,32 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignSelf: "flex-start",
     marginLeft: "10%",
-    color: "#fff", // White text for dark background
+    color: "#fff",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#444", // Darker border for dark background
+    borderColor: "#444",
     padding: 10,
     borderRadius: 8,
     width: "80%",
     marginBottom: 10,
-    color: "#fff", // White text for dark background
-    backgroundColor: "#333", // Dark input background
+    color: "#fff",
+    backgroundColor: "#333",
   },
   bioInput: {
     borderWidth: 1,
-    borderColor: "#444", // Darker border for dark background
+    borderColor: "#444",
     padding: 10,
     borderRadius: 8,
     width: "80%",
     height: 80,
     marginBottom: 20,
-    color: "#fff", // White text for dark background
-    backgroundColor: "#333", // Dark input background
+    color: "#fff",
+    backgroundColor: "#333",
   },
   updateButton: {
     marginTop: 20,
-    backgroundColor: "#28a745", // Green button
+    backgroundColor: "#28a745",
     padding: 10,
     borderRadius: 8,
     width: "80%",
@@ -260,7 +274,7 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     marginTop: 10,
-    backgroundColor: "#007bff", // Blue button
+    backgroundColor: "#007bff",
     padding: 10,
     borderRadius: 8,
     width: "80%",
@@ -273,8 +287,13 @@ const styles = StyleSheet.create({
   searchTitle: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#fff", // White text for dark background
+    color: "#fff",
     textAlign: "center",
     marginTop: 55,
+  },
+  infoText: {
+    fontSize: 16,
+    color: "#fff",
+    marginBottom: 5,
   },
 });
