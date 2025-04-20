@@ -55,8 +55,6 @@ export default function LetterboxdStyleReviewForm({
   const [reviewText, setReviewText] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [firstTime, setFirstTime] = useState(true);
-  const [noSpoilers, setNoSpoilers] = useState(false);
   const [canReply, setCanReply] = useState(true);
 
   const handleTagAdd = () => {
