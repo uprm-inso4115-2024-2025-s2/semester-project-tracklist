@@ -8,12 +8,17 @@ import {
   TouchableOpacity,
   Switch,
   Platform,
+  Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { saveReview } from "@/spotify/saveReview";
+import { auth } from "@/firebaseConfig"
 
+const userId = auth.currentUser?.uid;
 interface ReviewFormProps {
+  itemId: string;
   posterUrl?: string;
   title: string;
   year: number;
@@ -22,17 +27,21 @@ interface ReviewFormProps {
 }
 
 interface ReviewData {
+  itemId: string;
   dateWatched: Date;
   rating: number;
   liked: boolean;
   reviewText: string;
   tags: string[];
-  firstTime: boolean;
-  noSpoilers: boolean;
   canReply: boolean;
+  itemTitle: string;
+  year: number;
+  posterUrl: string;
+  userId: string;
 }
 
 export default function LetterboxdStyleReviewForm({
+  itemId,
   posterUrl,
   title,
   year,
@@ -65,18 +74,32 @@ export default function LetterboxdStyleReviewForm({
     setRating(value);
   };
 
-  const submitReview = () => {
-    if (!rating || !reviewText.trim()) return;
-    onSubmit({
+  const submitReview = async () => {
+    if (!userId) {
+      Alert.alert("Not signed in", "You must be logged in to leave a review.");
+      return;
+    }
+    const reviewPayload = {
+      itemId,
       dateWatched,
       rating,
       liked,
       reviewText: reviewText.trim(),
       tags,
-      firstTime,
-      noSpoilers,
       canReply,
-    });
+      itemTitle: title,
+      year,
+      posterUrl: posterUrl || "",
+      userId: userId, // Replace this with current user's ID if using Firebase Auth
+    };
+    
+    try {
+      await saveReview(reviewPayload);
+      Alert.alert("Success", "Your review has been saved!");
+      onSubmit(reviewPayload); // Optional if you want to lift the state up
+    } catch (error) {
+      Alert.alert("Error", "Failed to save review.");
+    }
   };
 
   return (
