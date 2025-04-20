@@ -3,10 +3,10 @@
 // export { default as trackService } from "./trackService";
 // export { default as artistService } from "./artistService";
 // export { default as playlistService } from "./playlistService";
+const dotenv = require("dotenv");
+dotenv.config();
 
 import { fetchToken } from "../spotify/auth";
-
-const SEARCH_URL = "https://api.spotify.com/v1/search";
 
 // Usage:
 // Import searchAlbums from "./spotify/index" and call it with a search query string.
@@ -16,14 +16,12 @@ const SEARCH_URL = "https://api.spotify.com/v1/search";
 export const searchAlbums = async (query: string) => {
   const token = await fetchToken();
   if (!token) return [];
-  const response = await fetch(`${SEARCH_URL}?q=${query}&type=album`, {
+  const response = await fetch(`${process.env.SEARCH_API_URL}?q=${query}&type=album`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await response.json();
   return data.albums?.items || [];
 };
-
-const ALBUM_TRACKS_URL = "https://api.spotify.com/v1/albums";
 
 // Usage:
 // Import getAlbumTracks from "./spotify/index" and call it with an album ID.
@@ -33,14 +31,12 @@ const ALBUM_TRACKS_URL = "https://api.spotify.com/v1/albums";
 export const getAlbumTracks = async (albumId: string) => {
   const token = await fetchToken();
   if (!token) return [];
-  const response = await fetch(`${ALBUM_TRACKS_URL}/${albumId}/tracks`, {
+  const response = await fetch(`${process.env.ALBUM_API_URL}/${albumId}/tracks`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await response.json();
   return data.items || [];
 };
-
-const SPOTIFY_API_URL = "https://api.spotify.com/v1/tracks";
 
 /**
  * Fetches track details from Spotify by track ID.
@@ -51,7 +47,7 @@ const SPOTIFY_API_URL = "https://api.spotify.com/v1/tracks";
 export async function getTrackById(trackId: string) {
   try {
     const token = await fetchToken(); // Retrieve access token
-    const response = await fetch(`${SPOTIFY_API_URL}/${trackId}`, {
+    const response = await fetch(`${process.env.TRACKS_API_URL}/${trackId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     
@@ -107,7 +103,7 @@ export const getSeveralTracks = async (trackIds: string[]): Promise<Object[] | n
     const idsString = trackIds.join(",");
 
     // Make the API call
-    const response = await fetch(`${SPOTIFY_API_URL}?ids=${idsString}`);
+    const response = await fetch(`${process.env.TRACKS_API_URL}?ids=${idsString}`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch multiple tracks: ${response.statusText}`);
@@ -120,9 +116,6 @@ export const getSeveralTracks = async (trackIds: string[]): Promise<Object[] | n
   }
 };
 
-// Note: these constant should be on the Env section
-const ARTISTS_API_URL = "https://api.spotify.com/v1/artists";
-
 /**
  * Fetches related artists from Spotify by artist ID.
  * @param {string} artistId - The Spotify ID of the artist.
@@ -131,7 +124,7 @@ const ARTISTS_API_URL = "https://api.spotify.com/v1/artists";
 export async function getRelatedArtists(artistId: string): Promise<Object | null> {
   try {
     const token = await fetchToken(); // Retrieve access token
-    const response = await fetch(`${ARTISTS_API_URL}/${artistId}/related-artists`, {
+    const response = await fetch(`${process.env.ARTIST_API_URL}/${artistId}/related-artists`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -155,7 +148,7 @@ export async function getRelatedArtists(artistId: string): Promise<Object | null
 export async function getTopTracks(artistId: string, country: string = "US"): Promise<Object | null> {
   try {
     const token = await fetchToken(); // Retrieve access token
-    const response = await fetch(`${ARTISTS_API_URL}/${artistId}/top-tracks?market=${country}`, {
+    const response = await fetch(`${process.env.ARTIST_API_URL}/${artistId}/top-tracks?market=${country}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -178,7 +171,7 @@ export async function getTopTracks(artistId: string, country: string = "US"): Pr
 export async function getArtist(artistId: string): Promise<Object | null> {
   try {
     const token = await fetchToken(); // Retrieve access token
-    const response = await fetch(`${ARTISTS_API_URL}/${artistId}`, {
+    const response = await fetch(`${process.env.ARTIST_API_URL}/${artistId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -208,7 +201,7 @@ export const getSeveralArtists = async (artistIds: string[]): Promise<Object[] |
     const idsString = artistIds.join(",");
 
     // Make the API call
-    const response = await fetch(`${ARTISTS_API_URL}?ids=${idsString}`);
+    const response = await fetch(`${process.env.ARTIST_API_URL}?ids=${idsString}`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch multiple artists: ${response.statusText}`);
@@ -229,7 +222,7 @@ export const getSeveralArtists = async (artistIds: string[]): Promise<Object[] |
 export const getAlbumsFromArtist = async (artistId: string) => {
   const token = await fetchToken();
   if (!token) return [];
-  const response = await fetch(`${ARTISTS_API_URL}/${artistId}/albums`, {
+  const response = await fetch(`${process.env.ARTIST_API_URL}/${artistId}/albums`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await response.json();
@@ -239,7 +232,7 @@ export const getAlbumsFromArtist = async (artistId: string) => {
 export async function getNewReleases() {
   try {
     const token = await fetchToken();
-    const response = await fetch("https://api.spotify.com/v1/browse/new-releases", {
+    const response = await fetch(`${process.env.BROWSE_API_URL}/new-releases`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) {
@@ -271,7 +264,7 @@ export async function getNewReleases() {
 export async function fetchSpotifyPlaylist(playlistId: string) {
   const token = await fetchToken();
   try {
-      const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+      const response = await fetch(`${process.env.PLAYLIST_API_URL}/${playlistId}`, {
           method: "GET",
           headers: {
               "Authorization": `Bearer ${token}`,
