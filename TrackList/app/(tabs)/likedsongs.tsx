@@ -1,7 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet, Modal } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+} from "react-native";
 import { useRouter } from "expo-router";
 
+// Sample data
 const likedItems = [
   { id: "1", image: require("../../assets/images/jhayco.png") },
   { id: "2", image: require("../../assets/images/dtmf.png") },
@@ -11,95 +20,148 @@ const likedItems = [
   { id: "6", image: require("../../assets/images/dtmf.png") },
 ];
 
+// Filter option sets
 const sortOptions = ["Newest to oldest", "Oldest to newest"];
 const dateFilters = ["All dates", "Past week", "Past month", "Past year", "Date range"];
 const artistFilters = ["JhayCo", "Kendrick Lamar", "Doja Cat", "Benson Boone", "Shaboozey"];
 
+// Configuration array for filters
+const FILTERS = [
+  { key: "sort", label: "Sort by", options: sortOptions, defaultLabel: "Newest to oldest" },
+  { key: "date", label: "Filter by date", options: dateFilters, defaultLabel: "All dates" },
+  { key: "artist", label: "Filter by artist", options: artistFilters, defaultLabel: "All artists" },
+];
+
+type FilterConfig = typeof FILTERS[number];
+
 export default function LikesScreen() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
-  const [filterType, setFilterType] = useState("");
-  const [selectedOption, setSelectedOption] = useState(null);
-  
-  const openModal = (type) => {
-    setFilterType(type);
+  const [activeFilter, setActiveFilter] = useState<string>("");
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+
+  const openFilter = (key: string) => {
+    setActiveFilter(key);
     setModalVisible(true);
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.itemContainer}>
-      <Image source={item.image} style={styles.image} />
-    </View>
-  );
-
-  const getFilterOptions = () => {
-    switch (filterType) {
-      case "sort":
-        return sortOptions;
-      case "date":
-        return dateFilters;
-      case "artist":
-        return artistFilters;
-      default:
-        return [];
-    }
+  const applyOption = (option: string) => {
+    setSelectedOptions(prev => ({ ...prev, [activeFilter]: option }));
+    setModalVisible(false);
   };
+
+  // Find the active filter configuration
+  const activeFilterConfig = FILTERS.find(f => f.key === activeFilter);
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>{"<"}</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Likes</Text>
-        <TouchableOpacity>
-          <Text style={styles.selectText}>Select</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.filters}>
-        <TouchableOpacity style={styles.filterButton} onPress={() => openModal("sort")}> 
-          <Text style={styles.filterText}>Newest to oldest ▼</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.filterButton} onPress={() => openModal("date")}> 
-          <Text style={styles.filterText}>All Dates ▼</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.filterButton} onPress={() => openModal("artist")}> 
-          <Text style={styles.filterText}>All Artists ▼</Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={likedItems}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+      <HeaderBar title="Likes" onBack={() => router.back()} onSelect={() => { /* future */ }} />
+      <FilterBar filters={FILTERS} selectedOptions={selectedOptions} onOpen={openFilter} />
+      <GridList
+        items={likedItems}
         numColumns={3}
-        contentContainerStyle={styles.gridContainer}
+        renderItem={({ item }) => (
+          <View style={styles.itemContainer}>
+            <Image source={item.image} style={styles.image} />
+          </View>
+        )}
       />
 
-      {/* Modal */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{
-              filterType === "sort" ? "Sort by" : 
-              filterType === "date" ? "Filter by date" : 
-              "Filter by singer"
-            }</Text>
-            {getFilterOptions().map((option, index) => (
-              <TouchableOpacity key={index} onPress={() => setSelectedOption(option)} style={styles.optionButton}>
-                <Text style={[styles.optionText, selectedOption === option && styles.selectedOptionText]}>
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={styles.closeText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* Only render modal if a filter is active */}
+      {activeFilterConfig && (
+        <FilterModal
+          visible={modalVisible}
+          filter={activeFilterConfig}
+          selected={selectedOptions[activeFilter]}
+          onSelect={applyOption}
+          onClose={() => setModalVisible(false)}
+        />
+      )}
     </View>
+  );
+}
+
+// Header with back and select
+function HeaderBar({ title, onBack, onSelect }: { title: string; onBack: () => void; onSelect: () => void }) {
+  return (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <Text style={styles.backText}>{"<"}</Text>
+      </TouchableOpacity>
+      <Text style={styles.title}>{title}</Text>
+      <TouchableOpacity onPress={onSelect} style={styles.selectButton}>
+        <Text style={styles.selectText}>Select</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// Row of filter buttons
+function FilterBar({
+  filters,
+  selectedOptions,
+  onOpen,
+}: {
+  filters: FilterConfig[];
+  selectedOptions: Record<string, string>;
+  onOpen: (key: string) => void;
+}) {
+  return (
+    <View style={styles.filters}>
+      {filters.map(f => (
+        <TouchableOpacity key={f.key} style={styles.filterButton} onPress={() => onOpen(f.key)}>
+          <Text style={styles.filterText}>
+            {(selectedOptions[f.key] || f.defaultLabel) + " ▼"}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
+// Generic grid list
+function GridList<T>({ items, numColumns, renderItem }: { items: T[]; numColumns: number; renderItem: ({ item }: { item: T }) => JSX.Element; }) {
+  return (
+    <FlatList
+      data={items}
+      renderItem={renderItem}
+      keyExtractor={(item: any) => item.id}
+      numColumns={numColumns}
+      contentContainerStyle={styles.gridContainer}
+    />
+  );
+}
+
+// Modal for selecting filter options
+function FilterModal({
+  visible,
+  filter,
+  selected,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  filter: FilterConfig;
+  selected?: string;
+  onSelect: (option: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <Modal visible={visible} transparent animationType="slide">
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>{filter.label}</Text>
+          {filter.options.map((opt, idx) => (
+            <TouchableOpacity key={idx} onPress={() => onSelect(opt)} style={styles.optionButton}>
+              <Text style={[styles.optionText, selected === opt && styles.selectedOptionText]}>{opt}</Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -116,6 +178,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 10,
   },
+  backButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
   backText: {
     fontSize: 24,
     color: "#000",
@@ -124,7 +190,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     color: "#000",
-    alignItems: "center",
+  },
+  selectButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
   selectText: {
     fontSize: 16,
@@ -163,7 +232,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
     backgroundColor: "#fff",
@@ -176,12 +245,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
   },
-  closeText: {
-    color: "#FF8800",
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "right",
-  },
   optionButton: {
     paddingVertical: 10,
   },
@@ -192,5 +255,15 @@ const styles = StyleSheet.create({
   selectedOptionText: {
     color: "#FF8800",
     fontWeight: "bold",
+  },
+  closeButton: {
+    paddingVertical: 12,
+    alignSelf: "flex-end",
+  },
+  closeText: {
+    color: "#FF8800",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "right",
   },
 });
