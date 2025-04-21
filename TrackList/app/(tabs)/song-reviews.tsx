@@ -4,11 +4,12 @@ import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from "rea
 import Icon from "react-native-vector-icons/Ionicons";
 import ReviewCard from "@/components/ReviewCard";
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { auth } from "@/firebaseConfig"
 interface Review {
   id: string;
   username: string;
   rating: number;
+  userId: string;
   reviewText: string;
   timestamp: string;
   liked?: boolean;
@@ -22,7 +23,13 @@ interface SongReviewsProps {
 const SongReviews: React.FC<SongReviewsProps> = ({ trackId }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'everyone' | 'friends' | 'you'>('everyone');
+  const [filter, setFilter] = useState<'everyone' | 'you'>('everyone');
+  const [userId, setUserId] = useState<string | null>(null);
+
+useEffect(() => {
+  const currentUser = auth.currentUser;
+  setUserId(currentUser?.uid ?? null);
+}, []);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -32,6 +39,7 @@ const SongReviews: React.FC<SongReviewsProps> = ({ trackId }) => {
           id: "1",
           username: "SilentDawn",
           rating: 5,
+          userId: "user1",
           reviewText: "Assimilation is a threat to the binding ties of community...",
           timestamp: "1d ago",
           liked: true,
@@ -40,6 +48,7 @@ const SongReviews: React.FC<SongReviewsProps> = ({ trackId }) => {
           id: "2",
           username: "zoë rose bryant",
           rating: 5,
+          userId: "user2",
           reviewText: "when i worship in the name of the lord this weekend...",
           timestamp: "2d ago",
           liked: true,
@@ -48,6 +57,7 @@ const SongReviews: React.FC<SongReviewsProps> = ({ trackId }) => {
           id: "3",
           username: "Brett Arnold",
           rating: 3.5,
+          userId: "user3",
           reviewText: "Nobody’s ready for how much talk there is about...",
           timestamp: "3d ago",
           liked: true,
@@ -56,9 +66,19 @@ const SongReviews: React.FC<SongReviewsProps> = ({ trackId }) => {
           id: "4",
           username: "jer",
           rating: 4.5,
+          userId: "user4",
           reviewText: "vampires be like 'i’m fighting demons' and the demons...",
           timestamp: "5d ago",
           liked: true,
+        },
+        {
+          id: "5",
+          username: "Jessy",
+          rating: 4,
+          userId: userId || "user5",
+          reviewText: "I love this song! It really speaks to me.",
+          timestamp: "1w ago",
+          liked: false,
         },
       ];
       setTimeout(() => {
@@ -69,7 +89,12 @@ const SongReviews: React.FC<SongReviewsProps> = ({ trackId }) => {
     fetchReviews();
   }, [trackId]);
 
-  const filteredReviews = reviews;
+  const filteredReviews = reviews.filter((review) => {
+    if (filter === "you" && userId) {
+      return review.userId === userId;
+    }
+    return true;
+  });
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fdfdfd" }}>
