@@ -77,11 +77,11 @@ const SongReviews: React.FC<SongReviewsProps> = ({ trackId }) => {
         <TouchableOpacity style={{ marginRight: 16 }}>
           <Icon name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={{ color: "#000", fontSize: 20, fontWeight: "bold" }}>Reviews of Sinners</Text>
+        <Text style={{ color: "#000", fontSize: 20, fontWeight: "bold" }}>Reviews</Text>
       </View>
 
       <View style={{ flexDirection: "row", justifyContent: "space-around", paddingVertical: 10, backgroundColor: "#eee" }}>
-        {['everyone', 'friends', 'you'].map((item) => (
+        {['everyone', 'you'].map((item) => (
           <TouchableOpacity key={item} onPress={() => setFilter(item as any)}>
             <Text style={{ color: filter === item ? '#000' : '#888', fontWeight: filter === item ? 'bold' : 'normal' }}>
               {item.charAt(0).toUpperCase() + item.slice(1)}
