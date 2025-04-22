@@ -32,7 +32,12 @@ export const searchAlbums = async (query: string) => {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await response.json();
-  return data.albums?.items || [];
+  return data.albums.items.map((album: any) => ({
+    id: album.id,
+    name: album.name,
+    artist: album.artists.map((artist: any) => artist.name).join(", "),
+    image: album.images[0]?.url,
+  })) || [];
 };
 
 const ALBUM_TRACKS_URL = "https://api.spotify.com/v1/albums";
