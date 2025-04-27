@@ -1,8 +1,4 @@
-import axios from "axios";
 import { fetchToken } from "../spotify/auth";
-
-const ALBUM_TRACKS_URL = "https://api.spotify.com/v1/albums";
-
 // Usage:
 // Import getAlbumTracks from "./spotify/index" and call it with an album ID.
 // Example:
@@ -12,10 +8,11 @@ export const getAlbumTracks = async (albumId: string) => {
   const token = await fetchToken();
   if (!token) return [];
   try {
-    const response = await axios.get(`${ALBUM_TRACKS_URL}/${albumId}/tracks`, {
+    const response = await fetch(`${process.env.ALBUM_API_URL}/${albumId}/tracks`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data.items.map((track: any) => ({
+    const data = await response.json();
+    return data.items.map((track: any) => ({
         id: track.id,
         name: track.name,
         duration_ms: track.duration_ms,
@@ -30,10 +27,11 @@ export const getAlbumTracks = async (albumId: string) => {
 export async function getNewReleases() {
   try {
     const token = await fetchToken();
-    const response = await axios.get("https://api.spotify.com/v1/browse/new-releases", {
+    const response = await fetch(`${process.env.BROWSE_API_URL}/new-releases`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data.albums.items.map((album: any) => ({
+    const data = await response.json();
+    return data.albums.items.map((album: any) => ({
       id: album.id,
       name: album.name,
       artist: album.artists.map((artist: any) => artist.name).join(", "),
