@@ -54,7 +54,8 @@ export default function Profile() {
             setFullName(data.fullName || "");
             setBio(data.bio || "Hello! I'm new here.");
             setProfilePicture(
-              data.profilePicture || "https://example.com/default-avatar.png"
+              data.profilePicture ||
+                "https://example.com/default-avatar.png"
             );
           }
         }
@@ -107,15 +108,23 @@ export default function Profile() {
     }
   };
 
-  if (!userData) return <Text>Loading...</Text>;
+  if (!userData) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#28a745" />
+      </View>
+    );
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView>
           <View style={styles.container}>
+            {/* Header */}
             <Text style={styles.searchTitle}>Profile</Text>
 
+            {/* Avatar */}
             <View style={styles.profileContainer}>
               <Image
                 source={{ uri: profilePicture }}
@@ -143,7 +152,7 @@ export default function Profile() {
             <Text style={styles.label}>Email</Text>
             <Text style={styles.email}>{userData.email}</Text>
 
-            {/* Display Followers, Following, Reviews (if available) */}
+            {/* Followers, Following, Reviews */}
             {userData.followers !== undefined && (
               <Text style={styles.infoText}>
                 Followers: {userData.followers}
@@ -163,7 +172,7 @@ export default function Profile() {
             {/* Bio */}
             <Text style={styles.label}>Bio</Text>
             <TextInput
-              style={styles.bioInput}
+              style={[styles.input, styles.bioInput]}
               value={bio}
               onChangeText={setBio}
               multiline
@@ -205,6 +214,12 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#1e1e1e",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#1e1e1e",
+  },
   profileContainer: {
     alignItems: "center",
     marginVertical: 20,
@@ -221,15 +236,12 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     marginBottom: 20,
   },
-  name: {
-    fontSize: 22,
+  searchTitle: {
+    fontSize: 28,
     fontWeight: "bold",
     color: "#fff",
-  },
-  email: {
-    fontSize: 16,
-    color: "#aaa",
-    marginBottom: 10,
+    textAlign: "center",
+    marginTop: 55,
   },
   label: {
     fontSize: 16,
@@ -238,6 +250,11 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginLeft: "10%",
     color: "#fff",
+  },
+  email: {
+    fontSize: 16,
+    color: "#aaa",
+    marginBottom: 10,
   },
   input: {
     borderWidth: 1,
@@ -250,15 +267,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#333",
   },
   bioInput: {
-    borderWidth: 1,
-    borderColor: "#444",
-    padding: 10,
-    borderRadius: 8,
-    width: "80%",
     height: 80,
-    marginBottom: 20,
+    textAlignVertical: "top",
+  },
+  infoText: {
+    fontSize: 16,
     color: "#fff",
-    backgroundColor: "#333",
+    marginBottom: 5,
   },
   updateButton: {
     marginTop: 20,
@@ -283,17 +298,5 @@ const styles = StyleSheet.create({
   menuButtonText: {
     color: "#fff",
     fontWeight: "bold",
-  },
-  searchTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
-    marginTop: 55,
-  },
-  infoText: {
-    fontSize: 16,
-    color: "#fff",
-    marginBottom: 5,
   },
 });
