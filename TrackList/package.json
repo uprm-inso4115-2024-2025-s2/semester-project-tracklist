@@ -22,6 +22,7 @@
     "@react-native-picker/picker": "^2.11.0",
     "@react-navigation/native": "^7.0.14",
     "axios": "^1.8.4",
+    "dotenv": "^16.5.0",
     "expo": "~52.0.28",
     "expo-auth-session": "~6.0.3",
     "expo-font": "~13.0.3",
