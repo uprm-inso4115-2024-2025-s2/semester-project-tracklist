@@ -85,40 +85,73 @@ export async function getTrackById(trackId: string) {
   }
 }
 
+interface TrackSummary {
+  name: string;
+  artistName: string;
+  albumName: string;
+  releaseDate: string;
+  spotifyUrl: string;
+}
 /**
  * Fetch multiple tracks' details from Spotify API.
  * @param {string[]} trackIds - An array of Spotify track IDs.
  * @returns {Promise<Object[] | null>} - An array of track data or null if an error occurs.
  */
-export const getSeveralTracks = async (trackIds: string[]): Promise<Object[] | null> => {
+export const getSeveralTracks = async (trackIds: string[]): Promise<{ tracks: TrackSummary[]; stringArray: string[] }> => {
   try {
     if (trackIds.length === 0) {
       throw new Error("No track IDs provided.");
     }
-
     // Convert the array of IDs into a comma-separated string
     const idsString = trackIds.join(",");
 
     // Make the API call
-    const response = await fetch(`${process.env.TRACKS_API_URL}?ids=${idsString}`);
+    const response = await fetch(`${SPOTIFY_API_URL}?ids=${idsString}`, {
+      headers: { Authorization: `Bearer ${await fetchToken()}` },
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch multiple tracks: ${response.statusText}`);
-    } else {
-      return await response.json();
     }
+    const data = await response.json();
+    const tracks: TrackSummary[] = data.tracks.map((track: any) => ({
+      name: track.name,
+      artistName: track.artists.map((a: any) => a.name).join(", "),
+      albumName: track.album.name,
+      releaseDate: track.album.release_date,
+      spotifyUrl: track.external_urls.spotify,
+    }));
+
+    const stringArray = tracks.map(
+      (track, i) =>
+        `${i + 1}. ${track.name} by ${track.artistName} — Album: ${track.albumName} — Released: ${track.releaseDate} — Listen: ${track.spotifyUrl}`
+    );
+    return { tracks, stringArray };
   } catch (error: any) {
     console.error("Error fetching multiple tracks:", error.response?.data || error.message);
-    return null;
+    return {
+      tracks: [],
+      stringArray: ["Error fetching multiple tracks."],
+    };
   }
 };
 
+// Note: these constant should be on the Env section
+const ARTISTS_API_URL = "https://api.spotify.com/v1/artists";
+
+interface ArtistObject {
+  name: string;
+  genres: string[];
+  popularity: number;
+  image: string;
+  spotifyUrl: string;
+}
 /**
  * Fetches related artists from Spotify by artist ID.
  * @param {string} artistId - The Spotify ID of the artist.
  * @returns {Promise<Object | null>} - The related artists data or null if an error occurs.
  */
-export async function getRelatedArtists(artistId: string): Promise<Object | null> {
+export async function getRelatedArtists(artistId: string): Promise<{ relatedArtists: ArtistObject[]; stringArray: string[] }> {
   try {
     const token = await fetchToken(); // Retrieve access token
     const response = await fetch(`${process.env.ARTIST_API_URL}/${artistId}/related-artists`, {
@@ -128,11 +161,30 @@ export async function getRelatedArtists(artistId: string): Promise<Object | null
     if (!response.ok) {
       throw new Error(`Failed to fetch related artists: ${response.statusText}`);
     }
+    const data = await response.json();
 
-    return await response.json();
-  } catch (error: any) {
+    const relatedArtists: ArtistObject[] = data.artists.map((artist: any) => ({
+      name: artist.name,
+      genres: artist.genres,
+      popularity: artist.popularity,
+      image: artist.images?.[0]?.url || "",
+      spotifyUrl: artist.external_urls.spotify,
+    }));
+
+    const stringArray = relatedArtists.map(
+      (artist, i) =>
+        `${i + 1}. ${artist.name} (${artist.genres.join(", ") || "No genres"}) — Popularity: ${
+          artist.popularity
+        } — Listen: ${artist.spotifyUrl}`
+    );
+    return { relatedArtists, stringArray };
+  } 
+    catch (error: any) {
     console.error("Error fetching related artists:", error.message);
-    return null;
+    return {
+      relatedArtists: [],
+      stringArray: ["Error fetching related artists."],
+    };
   }
 }
 
