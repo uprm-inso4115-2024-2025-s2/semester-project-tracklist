@@ -14,6 +14,7 @@ interface Track {
 interface Album {
   id: string;
   name: string;
+  image: string;
 }
 
 export default function AlbumSearch() {
@@ -106,7 +107,11 @@ export default function AlbumSearch() {
       <div style={ {marginTop: "16px"} }>
         {albums.map((album) => (
           <div key={album.id} style={styles.albumCard}>
-            <p style={styles.albumName}>{album.name}</p>
+            <p style={styles.albumName}>{album.name}
+              <div>
+                <img src={album.image} style={styles.albumImage}></img>
+              </div>
+            </p>
             <button
               onClick={!showTracks[album.id] ? () => (fetchTracks(album.id), setShowTracks(() => ({[album.id]: true}))) : () => setShowTracks(() => ({[album.id]: false}))}
               style={{ color: "white", background: "none", borderRadius: 5, cursor: "pointer", backgroundColor: "#FF8001" }}
@@ -179,4 +184,8 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
     paddingBottom: 8,
   },
+  albumImage: {
+    width: "50%",
+    height: "auto",
+  }
 });
