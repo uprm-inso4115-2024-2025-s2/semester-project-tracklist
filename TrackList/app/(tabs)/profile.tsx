@@ -8,28 +8,26 @@ import {
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
-  ScrollView,
   Keyboard,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { updatePassword } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
 
-// Define user data type
 interface UserData {
   fullName: string;
-  username: string;
   email: string;
   bio: string;
   profilePicture: string;
-  followers?: number;
-  following?: number;
-  reviews?: number;
   dateOfBirth: string;
   phoneNumber: string;
+  followers?: number;
+  reviews?: number;
 }
 
 export default function Profile() {
@@ -37,8 +35,12 @@ export default function Profile() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [fullName, setFullName] = useState<string>("");
   const [bio, setBio] = useState<string>("");
+  const [dateOfBirth, setDateOfBirth] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [profilePicture, setProfilePicture] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [newPassword, setNewPassword] = useState<string>("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -53,9 +55,10 @@ export default function Profile() {
             setUserData(data);
             setFullName(data.fullName || "");
             setBio(data.bio || "Hello! I'm new here.");
+            setDateOfBirth(data.dateOfBirth || "");
+            setPhoneNumber(data.phoneNumber || "");
             setProfilePicture(
-              data.profilePicture ||
-                "https://example.com/default-avatar.png"
+              data.profilePicture || "https://example.com/default-avatar.png"
             );
           }
         }
@@ -68,11 +71,6 @@ export default function Profile() {
   }, []);
 
   const handleUpdateProfile = async () => {
-    if (!fullName.trim()) {
-      Alert.alert("Error", "Please enter your full name.");
-      return;
-    }
-
     try {
       setLoading(true);
       const user = auth.currentUser;
@@ -81,22 +79,47 @@ export default function Profile() {
         await updateDoc(userRef, {
           fullName,
           bio,
+          dateOfBirth,
+          phoneNumber,
           profilePicture,
           updatedAt: new Date(),
         });
-
         Alert.alert("Success", "Profile updated!");
+        setEditMode(false);
       }
     } catch (error) {
+      console.error("Update profile error:", error);
       Alert.alert("Error", "Failed to update profile.");
-      console.error("Update error:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleConfirmChangePassword = async () => {
+    if (!newPassword.trim() || newPassword.length < 8) {
+      Alert.alert("Error", "Password must be at least 8 characters.");
+      return;
+    }
+
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await updatePassword(user, newPassword);
+        Alert.alert("Success", "Password updated successfully!");
+        setNewPassword("");
+      }
+    } catch (error: any) {
+      console.error("Change password error:", error);
+      if (error.code === "auth/requires-recent-login") {
+        Alert.alert("Session Expired", "Please re-login and try again.");
+      } else {
+        Alert.alert("Error", error.message);
+      }
+    }
+  };
+
   const handlePickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
@@ -111,97 +134,125 @@ export default function Profile() {
   if (!userData) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#28a745" />
+        <ActivityIndicator size="large" color="#00FF99" />
       </View>
     );
   }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-        <ScrollView>
-          <View style={styles.container}>
-            {/* Header */}
-            <Text style={styles.searchTitle}>Profile</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={styles.container}>
+          {/* Top Banner */}
+          <View style={styles.bannerContainer}>
+            <Image
+              source={{ uri: profilePicture }}
+              style={styles.bannerImage}
+            />
+            <View style={styles.overlay} />
 
-            {/* Avatar */}
-            <View style={styles.profileContainer}>
-              <Image
-                source={{ uri: profilePicture }}
-                style={styles.profileBackground}
-              />
-              <TouchableOpacity onPress={handlePickImage}>
-                <Image
-                  source={{ uri: profilePicture }}
-                  style={styles.profileImage}
-                />
-              </TouchableOpacity>
+            {/* Followers and Reviews */}
+            <View style={styles.statsContainer}>
+              <Text style={styles.statsText}>
+                Followers: {userData.followers ?? 123}
+              </Text>
+              <Text style={styles.statsText}>
+                Reviews: {userData.reviews ?? 45}
+              </Text>
             </View>
 
-            {/* Full Name */}
-            <Text style={styles.label}>Full Name</Text>
-            <TextInput
-              style={styles.input}
-              value={fullName}
-              onChangeText={setFullName}
-              placeholder="Enter your full name"
-              placeholderTextColor="#999"
-            />
-
-            {/* Email (Read-only) */}
-            <Text style={styles.label}>Email</Text>
-            <Text style={styles.email}>{userData.email}</Text>
-
-            {/* Followers, Following, Reviews */}
-            {userData.followers !== undefined && (
-              <Text style={styles.infoText}>
-                Followers: {userData.followers}
-              </Text>
-            )}
-            {userData.following !== undefined && (
-              <Text style={styles.infoText}>
-                Following: {userData.following}
-              </Text>
-            )}
-            {userData.reviews !== undefined && (
-              <Text style={styles.infoText}>
-                Reviews: {userData.reviews}
-              </Text>
-            )}
-
-            {/* Bio */}
-            <Text style={styles.label}>Bio</Text>
-            <TextInput
-              style={[styles.input, styles.bioInput]}
-              value={bio}
-              onChangeText={setBio}
-              multiline
-              placeholder="Tell us about yourself"
-              placeholderTextColor="#999"
-            />
-
-            {/* Update Profile Button */}
-            <TouchableOpacity
-              style={styles.updateButton}
-              onPress={handleUpdateProfile}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.updateButtonText}>Update Profile</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Back to Menu Button */}
-            <TouchableOpacity
-              style={styles.menuButton}
-              onPress={() => router.replace("/menu")}
-            >
-              <Text style={styles.menuButtonText}>Back to Menu</Text>
+            {/* Small Circular Profile Pic */}
+            <TouchableOpacity onPress={handlePickImage}>
+              <Image
+                source={{ uri: profilePicture }}
+                style={styles.profileImage}
+              />
             </TouchableOpacity>
           </View>
-        </ScrollView>
+
+          {/* Full Name */}
+          <Text style={styles.fullNameText}>{fullName}</Text>
+
+          {/* Bio */}
+          <View style={styles.bioContainer}>
+            <Text style={styles.bioText}>{bio}</Text>
+          </View>
+
+          {/* Buttons */}
+          {!editMode ? (
+            <TouchableOpacity
+              style={styles.updateButton}
+              onPress={() => setEditMode(true)}
+            >
+              <Text style={styles.updateButtonText}>Edit Profile</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="Full Name"
+                value={fullName}
+                onChangeText={setFullName}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Date of Birth"
+                value={dateOfBirth}
+                onChangeText={setDateOfBirth}
+                keyboardType="numeric"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Phone Number"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                keyboardType="phone-pad"
+              />
+              <TextInput
+                style={styles.bioInput}
+                placeholder="Bio"
+                value={bio}
+                onChangeText={setBio}
+                multiline
+              />
+
+              {/* Change Password */}
+              <TextInput
+                style={styles.input}
+                placeholder="New Password"
+                secureTextEntry
+                value={newPassword}
+                onChangeText={setNewPassword}
+              />
+              <TouchableOpacity
+                style={styles.updateButton}
+                onPress={handleConfirmChangePassword}
+              >
+                <Text style={styles.updateButtonText}>Change Password</Text>
+              </TouchableOpacity>
+
+              {/* Save or Cancel */}
+              <TouchableOpacity
+                style={styles.updateButton}
+                onPress={handleUpdateProfile}
+              >
+                <Text style={styles.updateButtonText}>Save Changes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuButton}
+                onPress={() => {
+                  setEditMode(false);
+                  setNewPassword("");
+                }}
+              >
+                <Text style={styles.menuButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
@@ -210,93 +261,113 @@ export default function Profile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#121212",
     alignItems: "center",
-    padding: 20,
-    backgroundColor: "#1e1e1e",
+    paddingTop: 20,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#1e1e1e",
+    backgroundColor: "#121212",
   },
-  profileContainer: {
-    alignItems: "center",
-    marginVertical: 20,
+  bannerContainer: {
+    width: "100%",
+    height: 200,
+    position: "relative",
+    backgroundColor: "#333",
   },
-  profileBackground: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+  bannerImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  statsContainer: {
     position: "absolute",
+    top: 20,
+    right: 20,
+    alignItems: "flex-end",
+  },
+  statsText: {
+    color: "#FFF",
+    fontSize: 14,
   },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 20,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 3,
+    borderColor: "#00FF99",
+    position: "absolute",
+    bottom: -55,
+    alignSelf: "center",
   },
-  searchTitle: {
-    fontSize: 28,
+  fullNameText: {
+    marginTop: 70,
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
-    marginTop: 55,
+    color: "#FFF",
   },
-  label: {
-    fontSize: 16,
-    fontWeight: "500",
+  bioContainer: {
     marginTop: 20,
-    alignSelf: "flex-start",
-    marginLeft: "10%",
-    color: "#fff",
+    width: "90%",
+    padding: 15,
+    backgroundColor: "#1E1E1E",
+    borderRadius: 10,
   },
-  email: {
+  bioText: {
+    color: "#CCC",
     fontSize: 16,
-    color: "#aaa",
-    marginBottom: 10,
+    textAlign: "center",
   },
   input: {
     borderWidth: 1,
     borderColor: "#444",
+    backgroundColor: "#1E1E1E",
+    color: "#FFF",
+    width: "90%",
     padding: 10,
     borderRadius: 8,
-    width: "80%",
-    marginBottom: 10,
-    color: "#fff",
-    backgroundColor: "#333",
+    marginTop: 10,
   },
   bioInput: {
-    height: 80,
-    textAlignVertical: "top",
-  },
-  infoText: {
-    fontSize: 16,
-    color: "#fff",
-    marginBottom: 5,
+    borderWidth: 1,
+    borderColor: "#444",
+    backgroundColor: "#1E1E1E",
+    color: "#FFF",
+    width: "90%",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    height: 100,
   },
   updateButton: {
-    marginTop: 20,
-    backgroundColor: "#28a745",
-    padding: 10,
+    backgroundColor: "#00FF99",
+    padding: 12,
     borderRadius: 8,
-    width: "80%",
+    width: "90%",
     alignItems: "center",
+    marginTop: 10,
   },
   updateButtonText: {
-    color: "#fff",
+    color: "#000",
     fontWeight: "bold",
+    fontSize: 16,
   },
   menuButton: {
-    marginTop: 10,
-    backgroundColor: "#007bff",
+    backgroundColor: "#444",
     padding: 10,
     borderRadius: 8,
-    width: "80%",
+    width: "90%",
     alignItems: "center",
+    marginTop: 10,
   },
   menuButtonText: {
-    color: "#fff",
+    color: "#FFF",
     fontWeight: "bold",
   },
 });
