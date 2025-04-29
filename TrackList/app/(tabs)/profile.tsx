@@ -15,9 +15,21 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebaseConfig";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { updatePassword } from "firebase/auth";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import {
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
+import Modal from "react-native-modal";
 
 interface UserData {
   fullName: string;
@@ -41,6 +53,9 @@ export default function Profile() {
   const [loading, setLoading] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
   const [newPassword, setNewPassword] = useState<string>("");
+  const [isPasswordModalVisible, setPasswordModalVisible] = useState(false);
+  const [currentPasswordInput, setCurrentPasswordInput] = useState("");
+  const [pendingPasswordChange, setPendingPasswordChange] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -101,12 +116,31 @@ export default function Profile() {
       return;
     }
 
+    setPasswordModalVisible(true); // Show password confirmation modal
+  };
+
+  const confirmPasswordChange = async () => {
     try {
       const user = auth.currentUser;
-      if (user) {
+      if (user && user.email) {
+        const credential = EmailAuthProvider.credential(
+          user.email,
+          currentPasswordInput
+        );
+        await reauthenticateWithCredential(user, credential);
+
         await updatePassword(user, newPassword);
         Alert.alert("Success", "Password updated successfully!");
         setNewPassword("");
+        setCurrentPasswordInput("");
+
+        // Log password change
+        await addDoc(collection(db, "audit_logs"), {
+          userId: user.uid,
+          email: user.email,
+          action: "password_changed",
+          timestamp: serverTimestamp(),
+        });
       }
     } catch (error: any) {
       console.error("Change password error:", error);
@@ -115,6 +149,8 @@ export default function Profile() {
       } else {
         Alert.alert("Error", error.message);
       }
+    } finally {
+      setPasswordModalVisible(false);
     }
   };
 
@@ -253,6 +289,33 @@ export default function Profile() {
             </>
           )}
         </View>
+        <Modal isVisible={isPasswordModalVisible}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Confirm Current Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter current password"
+              secureTextEntry
+              value={currentPasswordInput}
+              onChangeText={setCurrentPasswordInput}
+            />
+            <TouchableOpacity
+              style={styles.updateButton}
+              onPress={confirmPasswordChange}
+            >
+              <Text style={styles.updateButtonText}>Confirm</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => {
+                setPasswordModalVisible(false);
+                setCurrentPasswordInput("");
+              }}
+            >
+              <Text style={styles.menuButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
@@ -369,5 +432,17 @@ const styles = StyleSheet.create({
   menuButtonText: {
     color: "#FFF",
     fontWeight: "bold",
+  },
+  modalContent: {
+    backgroundColor: "#1E1E1E",
+    padding: 20,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFF",
+    marginBottom: 10,
   },
 });
