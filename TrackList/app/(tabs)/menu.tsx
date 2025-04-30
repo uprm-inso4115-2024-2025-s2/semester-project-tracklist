@@ -57,7 +57,7 @@ const Menu: React.FC = () => {
         <Text style={styles.tracklistTitle}>TrackList</Text>
         <TouchableOpacity 
           style={styles.notificationTab} 
-          onPress={() => router.push("/notification")} // Navigate to notification tab
+          onPress={() => router.push("/notification")} // ✅ Navigate to notification screen
         >
           <Image source={bellIcon} style={styles.bellIcon} />
           <Text style={styles.notificationCount}>3</Text>
@@ -125,7 +125,11 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   notificationTab: {
-    flexDirection: 'row',
+    marginTop: 20, // lower it more
+    padding: 12, // bigger touch area
+    minWidth: 50,
+    minHeight: 50,
+    justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },

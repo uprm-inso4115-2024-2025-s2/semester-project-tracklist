@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
   },
   bellIconButton: {
     marginRight: 15,
+    marginTop: 10, // lowered the bell icon
   },
   bellIcon: {
     width: 30,
