@@ -61,33 +61,39 @@ const ActivityTab: React.FC = () => {
 
       {/* Activity List */}
       <FlatList
-        data={activities}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.activityCard}>
-            <View style={styles.userInfo}>
-              <Image source={item.profilePic} style={styles.profilePic} />
-              <Text style={styles.username}>{item.user}</Text>
-            </View>
+  data={
+    selectedTab === "friends"
+      ? activities.filter((a) => a.user !== "KennethS")
+      : selectedTab === "you"
+      ? activities.filter((a) => a.user === "KennethS")
+      : [] // future support for "upcoming"
+  }
+  keyExtractor={(item) => item.id.toString()}
+  renderItem={({ item }) => (
+    <View style={styles.activityCard}>
+      <View style={styles.userInfo}>
+        <Image source={item.profilePic} style={styles.profilePic} />
+        <Text style={styles.username}>{item.user}</Text>
+      </View>
 
-            <View style={styles.ratingContainer}>
-              {Array.from({ length: 5 }).map((_, index) => (
-                <Text key={index} style={index < item.rating ? styles.starFilled : styles.starEmpty}>
-                  ★
-                </Text>
-              ))}
-            </View>
+      <View style={styles.ratingContainer}>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Text key={index} style={index < item.rating ? styles.starFilled : styles.starEmpty}>
+            ★
+          </Text>
+        ))}
+      </View>
 
-            <View style={styles.albumContainer}>
-              <Image source={item.albumCover} style={styles.albumCover} />
-              <View>
-                <Text style={styles.albumTitle}>{item.albumTitle}</Text>
-                <Text style={styles.artist}>{item.artist}</Text>
-              </View>
-            </View>
-          </View>
-        )}
-      />
+      <View style={styles.albumContainer}>
+        <Image source={item.albumCover} style={styles.albumCover} />
+        <View>
+          <Text style={styles.albumTitle}>{item.albumTitle}</Text>
+          <Text style={styles.artist}>{item.artist}</Text>
+        </View>
+      </View>
+    </View>
+  )}
+/>
     </View>
   );
 };
@@ -110,6 +116,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
     marginBottom: 15,
+    marginTop: 50
   },
   tabButton: {
     paddingVertical: 8,
