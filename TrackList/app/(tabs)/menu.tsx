@@ -1,6 +1,7 @@
 import { useNavigation, useRouter } from 'expo-router';
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, Animated } from 'react-native';
+import { View, Text, Image, StyleSheet, FlatList, Animated, SafeAreaView, TouchableWithoutFeedback } from 'react-native';
+import SongReviews from '../song-reviews';
 import { useColorScheme } from '@/components/useColorScheme';
 const bellIcon = require('../../assets/images/Bell.png');
 
@@ -9,13 +10,14 @@ interface Song {
   name: string;
   artist: string;
   date: string;
+  id: string;
 }
 
-const Menu: React.FC = () => {
+export default function Menu() {
   const [selectedTab, setSelectedTab] = useState<'songs' | 'reviews'>('songs');
   const [songs, setSongs] = useState<Song[]>([]);
   const navigation = useNavigation();
-  const router = useRouter(); // Added this for navigation
+  const router = useRouter();
   const colorScheme = useColorScheme();
 
   useEffect(() => {
@@ -24,13 +26,12 @@ const Menu: React.FC = () => {
 
   useEffect(() => {
     const mockSongs: Song[] = [
-      { cover: require('../../assets/images/jhayco.png'), name: 'Vida Rockstar', artist: 'JHAYCO', date: '2024' },
-      { cover: require('../../assets/images/jhayco.png'), name: 'Viene BASQUIAT', artist: 'JHAYCO', date: '2024' },
-      { cover: require('../../assets/images/jhayco.png'), name: 'Muri', artist: 'JHAYCO', date: '2024' },
-      { cover: require('../../assets/images/jhayco.png'), name: '100 Gramos', artist: 'JHAYCO', date: '2024' },
+      { id: '1', cover: require('../../assets/images/jhayco.png'), name: 'Vida Rockstar', artist: 'JHAYCO', date: '2024' },
+      { id: '2', cover: require('../../assets/images/jhayco.png'), name: 'Viene BASQUIAT', artist: 'JHAYCO', date: '2024' },
+      { id: '3', cover: require('../../assets/images/jhayco.png'), name: 'Muri', artist: 'JHAYCO', date: '2024' },
+      { id: '4', cover: require('../../assets/images/jhayco.png'), name: '100 Gramos', artist: 'JHAYCO', date: '2024' },
     ];
-    const repeatedSongs = Array(3).fill(mockSongs).flat();
-    setSongs(repeatedSongs);
+    setSongs(Array(3).fill(mockSongs).flat());
   }, []);
 
   const contentAnimation = useRef(new Animated.Value(0)).current;
@@ -41,49 +42,40 @@ const Menu: React.FC = () => {
       toValue: newTab === 'songs' ? 0 : 1,
       duration: 200,
       useNativeDriver: true,
-    }).start(() => {
-      setSelectedTab(newTab);
-    });
+    }).start(() => setSelectedTab(newTab));
   };
 
-  const contentTranslate = contentAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -100]
-  });
+  const contentTranslate = contentAnimation.interpolate({ inputRange: [0, 1], outputRange: [0, -100] });
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.tracklistTitle}>TrackList</Text>
-        <TouchableOpacity 
-          style={styles.notificationTab} 
-          onPress={() => router.push("/notification")} // Navigate to notification tab
-        >
+        <Text style={styles.title}>TrackList</Text>
+        <TouchableWithoutFeedback onPress={() => router.push('/notification')}>
           <Image source={bellIcon} style={styles.bellIcon} />
-          <Text style={styles.notificationCount}>3</Text>
-        </TouchableOpacity>
+        </TouchableWithoutFeedback>
       </View>
 
+      {/* Tab Switch Bar */}
       <View style={styles.tabRow}>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'songs' && styles.activeTab]}
-          onPress={() => handleTabPress('songs')}
-        >
-          <Text style={styles.tabButtonText}>Songs</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'reviews' && styles.activeTab]}
-          onPress={() => handleTabPress('reviews')}
-        >
-          <Text style={styles.tabButtonText}>Reviews</Text>
-        </TouchableOpacity>
+        <TouchableWithoutFeedback onPress={() => handleTabPress('songs')}>
+          <View style={[styles.tabButton, selectedTab === 'songs' && styles.activeTab]}>
+            <Text style={styles.tabText}>Songs</Text>
+          </View>
+        </TouchableWithoutFeedback>
+        <TouchableWithoutFeedback onPress={() => handleTabPress('reviews')}>
+          <View style={[styles.tabButton, selectedTab === 'reviews' && styles.activeTab]}>
+            <Text style={styles.tabText}>Reviews</Text>
+          </View>
+        </TouchableWithoutFeedback>
       </View>
 
-      <Animated.View style={{ transform: [{ translateX: contentTranslate }] }}>
-        {selectedTab === 'songs' && (
+      {/* Content */}
+      {selectedTab === 'songs' ? (
+        <Animated.View style={{ transform: [{ translateX: contentTranslate }] }}>
           <FlatList
             data={songs}
-            keyExtractor={(item, index) => index.toString()}
+            keyExtractor={(item, idx) => `${item.id}-${idx}`}
             numColumns={2}
             renderItem={({ item }) => (
               <View style={styles.songCard}>
@@ -95,116 +87,30 @@ const Menu: React.FC = () => {
             )}
             contentContainerStyle={styles.songList}
           />
-        )}
-
-        {selectedTab === 'reviews' && (
-          <View style={styles.reviewsSection}>
-            <Text style={{ color: '#fff' }}>Reviews content goes here.</Text>
-          </View>
-        )}
-      </Animated.View>
-    </View>
+        </Animated.View>
+      ) : (
+        <View style={styles.reviewsContainer}>
+          <SongReviews trackId={songs[0]?.id || ''} />
+        </View>
+      )}
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fcfcfc',
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  tracklistTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  notificationTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  bellIcon: {
-    width: 30,
-    height: 30,
-  },
-  notificationCount: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: 'red',
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  tabRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  tabButton: {
-    width: 172,
-    height: 50,
-    padding: 10,
-    marginHorizontal: 4.5,
-    borderRadius: 5,
-    backgroundColor: '#444',
-  },
-  activeTab: {
-    backgroundColor: '#007AFF',
-  },
-  tabButtonText: {
-    fontSize: 16,
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    paddingTop: 4,
-  },
-  songList: {
-    paddingBottom: 20,
-  },
-  songCard: {
-    width: '48%',
-    backgroundColor: '#222',
-    padding: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 15,
-    marginHorizontal: '1%',
-  },
-  songCover: {
-    width: 150,
-    height: 150,
-    borderRadius: 10,
-    marginBottom: 5,
-  },
-  songName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  songArtist: {
-    fontSize: 14,
-    color: '#bbb',
-  },
-  songDate: {
-    fontSize: 12,
-    color: '#888',
-  },
-  reviewsSection: {
-    padding: 20,
-    backgroundColor: '#222',
-    borderRadius: 10,
-  },
+  container: { flex: 1, backgroundColor: '#fcfcfc' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
+  title: { fontSize: 28, fontWeight: 'bold', color: 'black' },
+  bellIcon: { width: 30, height: 30 },
+  tabRow: { flexDirection: 'row', justifyContent: 'center', marginVertical: 10 },
+  tabButton: { flex: 1, marginHorizontal: 5, paddingVertical: 10, borderRadius: 25, backgroundColor: '#444', alignItems: 'center' },
+  activeTab: { backgroundColor: '#007AFF' },
+  tabText: { color: '#fff', fontWeight: 'bold' },
+  songList: { paddingBottom: 20 },
+  songCard: { width: '48%', backgroundColor: '#222', padding: 10, borderRadius: 10, alignItems: 'center', margin: '1%' },
+  songCover: { width: 150, height: 150, borderRadius: 10, marginBottom: 5 },
+  songName: { color: '#fff', fontWeight: 'bold', textAlign: 'center' },
+  songArtist: { color: '#bbb' },
+  songDate: { color: '#888' },
+  reviewsContainer: { flex: 1 },
 });
-
-export default Menu;

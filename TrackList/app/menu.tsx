@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  FlatList,
+} from "react-native";
 import { useNavigation, useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
+
 const userIcon = require("../assets/images/user-icon.png");
 const bellIcon = require("../assets/images/Bell.png");
 
@@ -21,27 +29,32 @@ const tabConfigs: { key: TabKey; label: string }[] = [
 ];
 
 /* ----- Header Component ----- */
-const MenuHeader: React.FC<{ profilePicture: string | null }> = ({ profilePicture }) => {
+const MenuHeader: React.FC<{ profilePicture: string | null }> = ({
+  profilePicture,
+}) => {
   const router = useRouter();
+
   return (
     <View style={styles.header}>
       <Text style={styles.tracklistTitle}>Tracklist</Text>
       <View style={styles.iconContainer}>
-        <TouchableOpacity
-          style={styles.bellIconButton}
+        <TouchableWithoutFeedback
           onPress={() => router.push("/notification")}
         >
-          <Image source={bellIcon} style={styles.bellIcon} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.profileIconButton}
+          <View style={styles.bellIconButton}>
+            <Image source={bellIcon} style={styles.bellIcon} />
+          </View>
+        </TouchableWithoutFeedback>
+        <TouchableWithoutFeedback
           onPress={() => router.replace("/profile")}
         >
-          <Image
-            source={profilePicture ? { uri: profilePicture } : userIcon}
-            style={styles.profileIcon}
-          />
-        </TouchableOpacity>
+          <View style={styles.profileIconButton}>
+            <Image
+              source={profilePicture ? { uri: profilePicture } : userIcon}
+              style={styles.profileIcon}
+            />
+          </View>
+        </TouchableWithoutFeedback>
       </View>
     </View>
   );
@@ -57,20 +70,26 @@ const TabToggle: React.FC<{
   return (
     <View style={styles.tabRow}>
       {tabConfigs.map((tab) => (
-        <TouchableOpacity
+        <TouchableWithoutFeedback
           key={tab.key}
-          style={[styles.tabButton, activeTab === tab.key && styles.activeTab]}
           onPress={() => onTabChange(tab.key)}
         >
-          <Text style={styles.tabButtonText}>{tab.label}</Text>
-        </TouchableOpacity>
+          <View
+            style={[
+              styles.tabButton,
+              activeTab === tab.key && styles.activeTab,
+            ]}
+          >
+            <Text style={styles.tabButtonText}>{tab.label}</Text>
+          </View>
+        </TouchableWithoutFeedback>
       ))}
-      <TouchableOpacity
-        style={styles.tabButton}
-        onPress={() => router.push("/activity")}
-      >
-        <Text style={styles.tabButtonText}>Activity</Text>
-      </TouchableOpacity>
+
+      <TouchableWithoutFeedback onPress={() => router.push("/activity")}>
+        <View style={styles.tabButton}>
+          <Text style={styles.tabButtonText}>Activity</Text>
+        </View>
+      </TouchableWithoutFeedback>
     </View>
   );
 };
@@ -175,12 +194,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fcfcfc",
     padding: 20,
   },
-  tracklistTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "black",
-    textAlign: "center",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -188,6 +201,11 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 20,
     marginBottom: 10,
+  },
+  tracklistTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "black",
   },
   iconContainer: {
     flexDirection: "row",
@@ -224,8 +242,9 @@ const styles = StyleSheet.create({
     height: 50,
     padding: 10,
     marginHorizontal: 4.5,
-    borderRadius: 5,
+    borderRadius: 25,
     backgroundColor: "#444",
+    justifyContent: "center",
   },
   activeTab: {
     backgroundColor: "#FF8001",
@@ -235,7 +254,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     textAlign: "center",
-    paddingTop: 4,
+    lineHeight: 28,
   },
   songList: {
     paddingBottom: 20,

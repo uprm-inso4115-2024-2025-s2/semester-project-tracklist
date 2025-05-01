@@ -105,7 +105,6 @@ export default function Search() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.searchTitle}>Search</Text>
             {/* Search bar */}
             <View style={styles.searchContainer}>
                 <Ionicons name="search-outline" size={20} color="#666" style={styles.searchIcon} />
@@ -134,6 +133,7 @@ export default function Search() {
 
 const styles = StyleSheet.create({
     container: {
+        paddingTop: 70,
         flex: 1,
         backgroundColor: "#fcfcfc"
     },

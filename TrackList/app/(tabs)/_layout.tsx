@@ -27,7 +27,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="menu"
         options={{
-          title: "TrackList",
+          title: "Track",
           headerShown: false,
           tabBarIcon: ({ color }) => <TabBarIcon name="music" color={color} />,
         }}
@@ -50,7 +50,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="likedsongs"
         options={{
-          title: "Liked Songs",
+          title: "Liked",
           tabBarIcon: ({ color }) => <TabBarIcon name="heart" color={color} />,
         }}
       />

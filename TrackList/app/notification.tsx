@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, FlatList, StyleSheet } from "react-native";
-import { auth, db } from "../../firebaseConfig";
+import {
+  View,
+  Text,
+  Image,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { auth, db } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
+import { useRouter } from "expo-router";
 
 interface Notification {
   id: string;
@@ -11,6 +19,7 @@ interface Notification {
 }
 
 export default function Notifications() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: "1",
@@ -51,13 +60,26 @@ export default function Notifications() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Notifications</Text>
+      {/* Header with Back Button */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>‹</Text>
+        </TouchableOpacity>
+        <Text style={styles.header}>Notifications</Text>
+      </View>
+
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.notificationItem}>
-            <Image source={{ uri: item.profilePicture }} style={styles.avatar} />
+            <Image
+              source={{ uri: item.profilePicture }}
+              style={styles.avatar}
+            />
             <Text style={styles.text}>
               <Text style={styles.username}>{item.username}</Text> {item.message}
             </Text>
@@ -69,37 +91,50 @@ export default function Notifications() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: "#ffffff", 
-      padding: 20,
-    },
-    header: {
-      fontSize: 22,
-      fontWeight: "bold",
-      color: "#000",
-      marginBottom: 15,
-    },
-    notificationItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "#f5f5f5", 
-      padding: 10,
-      borderRadius: 10,
-      marginBottom: 10,
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 10,
-    },
-    text: {
-      color: "#000", 
-      fontSize: 14,
-    },
-    username: {
-      fontWeight: "bold",
-      color: "#000", 
-    },
-  });
+  container: {
+    flex: 1,
+    backgroundColor: "#fcfcfc",
+    paddingTop: 80,
+    paddingHorizontal: 20,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 10,
+  },
+  backButtonText: {
+    fontSize: 40,
+    color: "#007AFF",
+  },
+  header: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  notificationItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  text: {
+    color: "#000",
+    fontSize: 14,
+  },
+  username: {
+    fontWeight: "bold",
+    color: "#000",
+  },
+});
