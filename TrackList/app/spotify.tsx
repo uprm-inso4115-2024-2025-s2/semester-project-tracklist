@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { getAlbumTracks, getNewReleases } from "../spotify/album";
+import { getAlbumTracks, getNewReleases} from "../spotify/album";
 import { searchAlbums } from "../spotify/index";
+import { StyleSheet, ScrollView } from "react-native";
 
 interface Track {
   id: string;
@@ -13,6 +14,7 @@ interface Track {
 interface Album {
   id: string;
   name: string;
+  image: string;
 }
 
 export default function AlbumSearch() {
@@ -20,6 +22,7 @@ export default function AlbumSearch() {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [tracks, setTracks] = useState<{ [key: string]: Track[] }>({});
   const [filter, setFilter] = useState({ artist: "", minDuration: 0, maxDuration: 1000 });
+  const [showTracks, setShowTracks] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     fetchNewReleases();
@@ -57,6 +60,7 @@ export default function AlbumSearch() {
   };
 
   return (
+    <ScrollView>
     <div style={{ padding: "16px", maxWidth: "600px", margin: "auto" }}>
       <input
         type="text"
@@ -67,19 +71,19 @@ export default function AlbumSearch() {
       />
       <button 
         onClick={handleSearch} 
-        style={{ backgroundColor: "#007BFF", color: "white", padding: "8px", borderRadius: "4px", marginTop: "8px", width: "100%", border: "none", cursor: "pointer" }}
+        style={styles.searchCard}
       >
         Search
       </button>
       <button 
         onClick={fetchNewReleases} 
-        style={{ backgroundColor: "#28A745", color: "white", padding: "8px", borderRadius: "4px", marginTop: "8px", width: "100%", border: "none", cursor: "pointer" }}
+        style={styles.newReleasesCard}
       >
         Get New Releases
       </button>
       
       <div style={{ marginTop: "16px" }}>
-        <h3>Filter Tracks</h3>
+        <h3 style={styles.header}>Filter Tracks</h3>
         <input 
           type="number" 
           placeholder="Min Duration (s)"
@@ -100,26 +104,88 @@ export default function AlbumSearch() {
         />
       </div>
       
-      <div style={{ marginTop: "16px" }}>
+      <div style={ {marginTop: "16px"} }>
         {albums.map((album) => (
-          <div key={album.id} style={{ border: "1px solid #ccc", padding: "8px", borderRadius: "4px", marginTop: "8px" }}>
-            <p style={{ fontWeight: "bold" }}>{album.name}</p>
+          <div key={album.id} style={styles.albumCard}>
+            <p style={styles.albumName}>{album.name}
+              <div>
+                <img src={album.image} style={styles.albumImage}></img>
+              </div>
+            </p>
             <button
-              onClick={() => fetchTracks(album.id)}
-              style={{ color: "#007BFF", textDecoration: "underline", background: "none", border: "none", cursor: "pointer" }}
+              onClick={!showTracks[album.id] ? () => (fetchTracks(album.id), setShowTracks(() => ({[album.id]: true}))) : () => setShowTracks(() => ({[album.id]: false}))}
+              style={{ color: "white", background: "none", borderRadius: 5, cursor: "pointer", backgroundColor: "#FF8001" }}
             >
               Show Tracks
             </button>
-            {tracks[album.id] && (
-              <ul style={{ marginTop: "8px", paddingLeft: "16px" }}>
+            {tracks[album.id] && showTracks[album.id] && (
+              <p style={styles.albumTracks}>
                 {filteredTracks(album.id).map((track: Track) => (
                   <li key={track.id}>{track.name} ({track.duration}s) - {track.artist}</li>
                 ))}
-              </ul>
+              </p>
             )}
           </div>
         ))}
       </div>
     </div>
+    </ScrollView>
   );
 }
+
+/* ----- Styles ----- */
+
+const styles = StyleSheet.create({
+  header: {
+    fontFamily: "Arial",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  searchCard: {
+    backgroundColor: "#FF8001",
+    color: "white",
+    padding: 8,
+    borderRadius: "4px",
+    marginTop: 8,
+    width: "100%",
+    cursor: "pointer",
+  },
+  newReleasesCard: {
+    backgroundColor: "#222",
+    color: "white",
+    padding: 8,
+    borderRadius: "4px",
+    marginTop: 8,
+    width: "100%",
+    cursor: "pointer",
+  },
+  albumCard: {
+    backgroundColor: "#222",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  albumName: {
+    fontSize: 16,
+    fontFamily: "Arial",
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+    paddingTop: 8,
+  },
+  albumTracks: {
+    fontSize: 14,
+    fontFamily: "Arial",
+    color: "#fff",
+    marginTop: 8,
+    paddingLeft: 8,
+    paddingBottom: 8,
+  },
+  albumImage: {
+    width: "50%",
+    height: "auto",
+  }
+});

@@ -1,24 +1,4 @@
-// Example:
-// export { default as auth } from "./auth";
-// export { default as trackService } from "./trackService";
-// export { default as artistService } from "./artistService";
-// export { default as playlistService } from "./playlistService";
-
 import { fetchToken } from "../spotify/auth";
-
-const SEARCH_URL = "https://api.spotify.com/v1/search";
-
-/**
- * Helper function that parses a spotify link to extract item type and item ID
- * @param link 
- * @returns itemType(playlist, track, etc.), ItemID
- */
-export async function parseSpotifyLink(link: string) {
-  const splitLink = link.split("/")
-  const itemType = splitLink[3];
-  const itemID = splitLink[4].split("?")[0];
-  return { itemType, itemID };
-};
 
 // Usage:
 // Import searchAlbums from "./spotify/index" and call it with a search query string.
@@ -28,14 +8,17 @@ export async function parseSpotifyLink(link: string) {
 export const searchAlbums = async (query: string) => {
   const token = await fetchToken();
   if (!token) return [];
-  const response = await fetch(`${SEARCH_URL}?q=${query}&type=album`, {
+  const response = await fetch(`${process.env.SEARCH_API_URL}?q=${query}&type=album`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await response.json();
-  return data.albums?.items || [];
+  return data.albums.items.map((album: any) => ({
+    id: album.id,
+    name: album.name,
+    artist: album.artists.map((artist: any) => artist.name).join(", "),
+    image: album.images[0]?.url,
+  })) || [];
 };
-
-const ALBUM_TRACKS_URL = "https://api.spotify.com/v1/albums";
 
 // Usage:
 // Import getAlbumTracks from "./spotify/index" and call it with an album ID.
@@ -45,14 +28,12 @@ const ALBUM_TRACKS_URL = "https://api.spotify.com/v1/albums";
 export const getAlbumTracks = async (albumId: string) => {
   const token = await fetchToken();
   if (!token) return [];
-  const response = await fetch(`${ALBUM_TRACKS_URL}/${albumId}/tracks`, {
+  const response = await fetch(`${process.env.ALBUM_API_URL}/${albumId}/tracks`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await response.json();
   return data.items || [];
 };
-
-const SPOTIFY_API_URL = "https://api.spotify.com/v1/tracks";
 
 /**
  * Fetches track details from Spotify by track ID.
@@ -63,7 +44,7 @@ const SPOTIFY_API_URL = "https://api.spotify.com/v1/tracks";
 export async function getTrackById(trackId: string) {
   try {
     const token = await fetchToken(); // Retrieve access token
-    const response = await fetch(`${SPOTIFY_API_URL}/${trackId}`, {
+    const response = await fetch(`${process.env.TRACKS_API_URL}/${trackId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     
@@ -104,70 +85,126 @@ export async function getTrackById(trackId: string) {
   }
 }
 
+interface TrackSummary {
+  name: string;
+  artistName: string;
+  albumName: string;
+  releaseDate: string;
+  spotifyUrl: string;
+}
 /**
  * Fetch multiple tracks' details from Spotify API.
  * @param {string[]} trackIds - An array of Spotify track IDs.
  * @returns {Promise<Object[] | null>} - An array of track data or null if an error occurs.
  */
-export const getSeveralTracks = async (trackIds: string[]): Promise<Object[] | null> => {
+export const getSeveralTracks = async (trackIds: string[]): Promise<{ tracks: TrackSummary[]; stringArray: string[] }> => {
   try {
     if (trackIds.length === 0) {
       throw new Error("No track IDs provided.");
     }
-
     // Convert the array of IDs into a comma-separated string
     const idsString = trackIds.join(",");
 
     // Make the API call
-    const response = await fetch(`${SPOTIFY_API_URL}?ids=${idsString}`);
+    const response = await fetch(`${SPOTIFY_API_URL}?ids=${idsString}`, {
+      headers: { Authorization: `Bearer ${await fetchToken()}` },
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch multiple tracks: ${response.statusText}`);
-    } else {
-      return await response.json();
     }
+    const data = await response.json();
+    const tracks: TrackSummary[] = data.tracks.map((track: any) => ({
+      name: track.name,
+      artistName: track.artists.map((a: any) => a.name).join(", "),
+      albumName: track.album.name,
+      releaseDate: track.album.release_date,
+      spotifyUrl: track.external_urls.spotify,
+    }));
+
+    const stringArray = tracks.map(
+      (track, i) =>
+        `${i + 1}. ${track.name} by ${track.artistName} — Album: ${track.albumName} — Released: ${track.releaseDate} — Listen: ${track.spotifyUrl}`
+    );
+    return { tracks, stringArray };
   } catch (error: any) {
     console.error("Error fetching multiple tracks:", error.response?.data || error.message);
-    return null;
+    return {
+      tracks: [],
+      stringArray: ["Error fetching multiple tracks."],
+    };
   }
 };
 
 // Note: these constant should be on the Env section
 const ARTISTS_API_URL = "https://api.spotify.com/v1/artists";
 
+interface ArtistObject {
+  name: string;
+  genres: string[];
+  popularity: number;
+  image: string;
+  spotifyUrl: string;
+}
 /**
  * Fetches related artists from Spotify by artist ID.
  * @param {string} artistId - The Spotify ID of the artist.
  * @returns {Promise<Object | null>} - The related artists data or null if an error occurs.
  */
-export async function getRelatedArtists(artistId: string): Promise<Object | null> {
+export async function getRelatedArtists(artistId: string): Promise<{ relatedArtists: ArtistObject[]; stringArray: string[] }> {
   try {
     const token = await fetchToken(); // Retrieve access token
-    const response = await fetch(`${ARTISTS_API_URL}/${artistId}/related-artists`, {
+    const response = await fetch(`${process.env.ARTIST_API_URL}/${artistId}/related-artists`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch related artists: ${response.statusText}`);
     }
+    const data = await response.json();
 
-    return await response.json();
-  } catch (error: any) {
+    const relatedArtists: ArtistObject[] = data.artists.map((artist: any) => ({
+      name: artist.name,
+      genres: artist.genres,
+      popularity: artist.popularity,
+      image: artist.images?.[0]?.url || "",
+      spotifyUrl: artist.external_urls.spotify,
+    }));
+
+    const stringArray = relatedArtists.map(
+      (artist, i) =>
+        `${i + 1}. ${artist.name} (${artist.genres.join(", ") || "No genres"}) — Popularity: ${
+          artist.popularity
+        } — Listen: ${artist.spotifyUrl}`
+    );
+    return { relatedArtists, stringArray };
+  } 
+    catch (error: any) {
     console.error("Error fetching related artists:", error.message);
-    return null;
+    return {
+      relatedArtists: [],
+      stringArray: ["Error fetching related artists."],
+    };
   }
 }
 
+interface TopTrack {
+  name: string;
+  albumName: string;
+  artists: string;
+  previewUrl: string | null;
+  spotifyUrl: string;
+}
 /**
  * Fetches the top tracks of an artist from Spotify.
  * @param {string} artistId - The Spotify ID of the artist.
  * @param {string} [country="US"] - The country code for track filtering.
- * @returns {Promise<Object | null>} - The top tracks data or null if an error occurs.
+ * @returns {Promise<{ topTracks: TopTrack[]; stringArray: string[] }>} - The top tracks data or empty array if an error occurs.
  */
-export async function getTopTracks(artistId: string, country: string = "US"): Promise<Object | null> {
+export async function getTopTracks(artistId: string, country: string = "US"): Promise<{ topTracks: TopTrack[]; stringArray: string[] }> {
   try {
     const token = await fetchToken(); // Retrieve access token
-    const response = await fetch(`${ARTISTS_API_URL}/${artistId}/top-tracks?market=${country}`, {
+    const response = await fetch(`${process.env.ARTIST_API_URL}/${artistId}/top-tracks?market=${country}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -175,10 +212,28 @@ export async function getTopTracks(artistId: string, country: string = "US"): Pr
       throw new Error(`Failed to fetch top tracks: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    const topTracks: TopTrack[] = data.tracks.map((track: any) => ({
+      name: track.name,
+      albumName: track.album.name,
+      artists: track.artists.map((artist: any) => artist.name).join(", "),
+      previewUrl: track.preview_url,
+      spotifyUrl: track.external_urls.spotify,
+    }));
+
+    const stringArray = topTracks.map(
+      (track, index) =>
+        `${index + 1}. ${track.name} by ${track.artists} — Album: ${track.albumName}${
+          track.previewUrl ? ` (Preview: ${track.previewUrl})` : ""
+        } — Listen: ${track.spotifyUrl}`
+    );
+    return { topTracks, stringArray };
   } catch (error: any) {
     console.error("Error fetching top tracks:", error.message);
-    return null;
+    return {
+      topTracks: [],
+      stringArray: ["Error fetching top tracks."],
+    };
   }
 }
 
@@ -190,7 +245,7 @@ export async function getTopTracks(artistId: string, country: string = "US"): Pr
 export async function getArtist(artistId: string): Promise<Object | null> {
   try {
     const token = await fetchToken(); // Retrieve access token
-    const response = await fetch(`${ARTISTS_API_URL}/${artistId}`, {
+    const response = await fetch(`${process.env.ARTIST_API_URL}/${artistId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -220,7 +275,7 @@ export const getSeveralArtists = async (artistIds: string[]): Promise<Object[] |
     const idsString = artistIds.join(",");
 
     // Make the API call
-    const response = await fetch(`${ARTISTS_API_URL}?ids=${idsString}`);
+    const response = await fetch(`${process.env.ARTIST_API_URL}?ids=${idsString}`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch multiple artists: ${response.statusText}`);
@@ -254,7 +309,7 @@ export const getAlbumsFromArtist = async (artistId: string) => {
     const token = await fetchToken();
     if (!token) throw new Error("Failed to retrieve access token.");
   
-    const response = await fetch(`${ARTISTS_API_URL}/${artistId}/albums`, {
+    const response = await fetch(`${process.env.ARTIST_API_URL}/${artistId}/albums`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) {
@@ -288,7 +343,7 @@ export const getAlbumsFromArtist = async (artistId: string) => {
 export async function getNewReleases() {
   try {
     const token = await fetchToken();
-    const response = await fetch("https://api.spotify.com/v1/browse/new-releases", {
+    const response = await fetch(`${process.env.BROWSE_API_URL}/new-releases`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) {
@@ -320,7 +375,7 @@ export async function getNewReleases() {
 export async function fetchSpotifyPlaylist(playlistId: string) {
   const token = await fetchToken();
   try {
-      const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+      const response = await fetch(`${process.env.PLAYLIST_API_URL}/${playlistId}`, {
           method: "GET",
           headers: {
               "Authorization": `Bearer ${token}`,

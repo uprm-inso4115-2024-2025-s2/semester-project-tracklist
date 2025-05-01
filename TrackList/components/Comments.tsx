@@ -43,38 +43,42 @@ const COMMENTS_DATA: Comment[] = [
   },
 ];
 
+const CommentItem = ({ comment }: { comment: Comment }) => (
+  <View style={styles.commentContainer}>
+    <Ionicons
+      name="person-circle-outline"
+      size={32}
+      color="#000"
+      style={styles.commentIcon}
+    />
+    <View style={styles.commentTextContainer}>
+      <Text style={styles.commentUsername}>{comment.username}</Text>
+      <Text style={styles.commentBody}>{comment.comment}</Text>
+    </View>
+  </View>
+);
+
+
+const CommentsHeader = ({ count }: { count: number }) => (
+  <View style={styles.header}>
+    <Text style={styles.headerTitle}>{count} comments</Text>
+  </View>
+);
+
+const CommentsList = ({ comments }: { comments: Comment[] }) => (
+  <FlatList
+    data={comments}
+    keyExtractor={(item) => item.id}
+    renderItem={({ item }) => <CommentItem comment={item} />}
+  />
+);
+
 export default function CommentsScreen() {
   return (
-    // SafeAreaView helps avoid the notch/status bar on iOS,
-    // but you can remove it if you truly want no default spacing at all.
     <SafeAreaView style={styles.container}>
-      {/* Force the status bar to be hidden or styled to your preference */}
       <StatusBar hidden />
-
-      {/* Header Section */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>5 comments</Text>
-      </View>
-
-      {/* List of Comments */}
-      <FlatList
-        data={COMMENTS_DATA}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.commentContainer}>
-            <Ionicons
-              name="person-circle-outline"
-              size={32}
-              color="#000"
-              style={styles.commentIcon}
-            />
-            <View style={styles.commentTextContainer}>
-              <Text style={styles.commentUsername}>{item.username}</Text>
-              <Text style={styles.commentBody}>{item.comment}</Text>
-            </View>
-          </View>
-        )}
-      />
+      <CommentsHeader count={COMMENTS_DATA.length} />
+      <CommentsList comments={COMMENTS_DATA} />
     </SafeAreaView>
   );
 }
